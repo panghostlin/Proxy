@@ -5,7 +5,7 @@
 ** @Filename:				main.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Monday 10 February 2020 - 13:04:26
+** @Last modified time:		Monday 10 February 2020 - 13:09:36
 *******************************************************************************/
 
 package			main
@@ -151,8 +151,8 @@ func	bridgeMicroservice(serverName string, clientMS string) (*grpc.ClientConn){
 
 func	main()	{
 	connections = make(map[string](*grpc.ClientConn))
-	connections[`members`] = bridgeMicroservice(`piwigo-members:8010`, `members`)
-	connections[`pictures`] = bridgeMicroservice(`piwigo-pictures:8012`, `pictures`)
+	connections[`members`] = bridgeMicroservice(`panghostlin-members:8010`, `members`)
+	connections[`pictures`] = bridgeMicroservice(`panghostlin-pictures:8012`, `pictures`)
 
 	serveProxy()
 }
