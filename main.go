@@ -5,11 +5,12 @@
 ** @Filename:				main.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Monday 10 February 2020 - 12:08:53
+** @Last modified time:		Monday 10 February 2020 - 13:04:26
 *******************************************************************************/
 
 package			main
 
+import			"os"
 import			"crypto/tls"
 import			"crypto/x509"
 import			"io/ioutil"
@@ -33,6 +34,13 @@ type	Sclients struct {
 var		connections map[string](*grpc.ClientConn)
 var		clients = &Sclients{}
 
+func fileExists(filename string) bool {
+    info, err := os.Stat(filename)
+    if os.IsNotExist(err) {
+        return false
+    }
+    return !info.IsDir()
+}
 
 func	serveProxy() {
 	crt := `/env/proxy.crt`
@@ -61,15 +69,15 @@ func	serveProxy() {
 		AllowCredentials: true,
 	})
 
-	go func() {
+	if (fileExists(crt) && fileExists(key)) {
+		handler := c.Handler(InitRouter())
+		logs.Success(`Listening on :443`)
+		fasthttp.ListenAndServeTLS(`:443`, crt, key, handler)
+	} else {
 		handler := c.Handler(InitRouter())
 		logs.Success(`Listening on :80`)
 		fasthttp.ListenAndServe(`:80`, handler)
-	}()
-
-	handler := c.Handler(InitRouter())
-	logs.Success(`Listening on :443`)
-	fasthttp.ListenAndServeTLS(`:443`, crt, key, handler)
+	}
 }
 func	bridgeInsecureMicroservice(serverName string, clientMS string) (*grpc.ClientConn) {
 	logs.Warning("Using insecure connection")
