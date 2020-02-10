@@ -5,7 +5,7 @@
 ** @Filename:				main.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Monday 10 February 2020 - 13:09:36
+** @Last modified time:		Monday 10 February 2020 - 18:03:54
 *******************************************************************************/
 
 package			main
@@ -71,12 +71,12 @@ func	serveProxy() {
 
 	if (fileExists(crt) && fileExists(key)) {
 		handler := c.Handler(InitRouter())
-		logs.Success(`Listening on :443`)
-		fasthttp.ListenAndServeTLS(`:443`, crt, key, handler)
+		logs.Success(`Listening on :8443`)
+		fasthttp.ListenAndServeTLS(`:8443`, crt, key, handler)
 	} else {
 		handler := c.Handler(InitRouter())
-		logs.Success(`Listening on :80`)
-		fasthttp.ListenAndServe(`:80`, handler)
+		logs.Success(`Listening on :8000`)
+		fasthttp.ListenAndServe(`:8000`, handler)
 	}
 }
 func	bridgeInsecureMicroservice(serverName string, clientMS string) (*grpc.ClientConn) {
