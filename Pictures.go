@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 06 February 2020 - 20:54:16
+** @Last modified time:		Monday 10 February 2020 - 11:56:39
 *******************************************************************************/
 
 package			main
@@ -15,7 +15,7 @@ import			"context"
 import			"strconv"
 import			"net/url"
 import			"github.com/microgolang/logs"
-import			"gitlab.com/betterpiwigo/sdk/Pictures"
+import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
 import			"github.com/fasthttp/websocket"
 import			"encoding/json"

@@ -5,7 +5,7 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 16 January 2020 - 14:16:13
+** @Last modified time:		Monday 10 February 2020 - 11:56:39
 *******************************************************************************/
 
 package			main
@@ -14,7 +14,7 @@ import			"context"
 import			"encoding/json"
 import			"github.com/microgolang/logs"
 import			"github.com/valyala/fasthttp"
-import			"gitlab.com/betterpiwigo/sdk/Members"
+import			"github.com/panghostlin/SDK/Members"
 
 /******************************************************************************
 **	createMemberGRPC

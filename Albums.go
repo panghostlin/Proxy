@@ -5,14 +5,14 @@
 ** @Filename:				Albums.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Tuesday 04 February 2020 - 15:39:22
+** @Last modified time:		Monday 10 February 2020 - 11:56:39
 *******************************************************************************/
 
 package			main
 
 import			"context"
 import			"github.com/microgolang/logs"
-import			"gitlab.com/betterpiwigo/sdk/Pictures"
+import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
 import			"encoding/json"
 
