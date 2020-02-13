@@ -5,13 +5,12 @@
 ** @Filename:				main.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 12:29:01
+** @Last modified time:		Thursday 13 February 2020 - 13:27:14
 *******************************************************************************/
 
 package			main
 
 import			"os"
-import			"log"
 import			"crypto/tls"
 import			"crypto/x509"
 import			"io/ioutil"
@@ -22,9 +21,6 @@ import			"github.com/panghostlin/SDK/Keys"
 import			"github.com/panghostlin/SDK/Members"
 import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
-import			"github.com/lab259/cors"
-
-import		"net/http"
 
 
 const	DEFAULT_CHUNK_SIZE = 64 * 1024
@@ -46,47 +42,6 @@ func fileExists(filename string) bool {
 }
 
 func	serveProxy() {
-	// crt := `/env/proxy.crt`
-    // key := `/env/proxy.key`
-	c := cors.New(cors.Options{
-		AllowOriginFunc: func(origin string) bool {
-			return true
-		},
-		// AllowedOrigins: []string{
-		// 	"https://api.majorcalamity.com", //PROD ADMIN
-		// 	"https://majorcalamity.com", //PROD WEBSITE
-		// },
-
-		AllowedMethods: []string{`GET`, `POST`, `DELETE`, `PUT`, `OPTIONS`},
-		AllowedHeaders:	[]string{
-			`Origin`,
-			`Access-Control-Allow-Origin`,
-			`Access-Control-Allow-Credentials`,
-			`Content-Type`,
-			`Transfer-Encoding`,
-			`Authorization`,
-			`X-Content-Type`,
-			`X-Content-Length`,
-			`X-Content-Name`,
-			`X-Content-Parts`,
-			`X-Content-Last-Modified`,
-			`X-Content-UUID`,
-			`X-Content-AlbumID`,
-			`X-Chunk-ID`,
-		},
-		ExposedHeaders: []string{`Set-Cookie`, `set-cookie`, `cookie`, `Content-Length`, `Content-Range`},
-		AllowCredentials: true,
-		OptionsPassthrough: true,
-	})
-
-	handler := c.Handler(InitRouter())
-	// fasthttp.ListenAndServe(`:8000`, handler)
-	_ = handler
-
-	go func() {
-		logs.Success(`Listening sockets on :8001`)
-		log.Fatal(http.ListenAndServe(`:8001`, InitWebsocketRouter()))
-	}()
 	logs.Success(`Listening on :8000`)
 	fasthttp.ListenAndServe(`:8000`, InitRouter())
 }

@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 13:02:32
+** @Last modified time:		Thursday 13 February 2020 - 13:26:46
 *******************************************************************************/
 
 package			main
@@ -17,13 +17,9 @@ import			"net/url"
 import			"github.com/microgolang/logs"
 import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
+import			"github.com/fasthttp/websocket"
 import			"encoding/json"
 import			"bytes"
-import			"net/http"
-
-// import			"github.com/fasthttp/websocket"
-import			"github.com/panghostlin/websocket"
-import			"github.com/julienschmidt/httprouter"
 
 type	WSResponse struct {
 	UUID		string
@@ -173,49 +169,22 @@ func	UploadPicture(ctx *fasthttp.RequestCtx) {
 **	3 : The encryption is done, we can now save the image
 **	4 : The image is saved, sending it's ID to work with if on the client side
 ******************************************************************************/
-func	WSUploadPicture(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	connection, err := upgrader.Upgrade(w, r, nil)
+func	WSUploadPicture(ctx *fasthttp.RequestCtx) {
+	err := fastupgrader.Upgrade(ctx, func(conn *websocket.Conn) {
+		response := &WSResponse{}
+		response.Step = 1
+		response.UUID, _ = generateUUID(32)
+		rm.InitWs(response.UUID, conn)
+		rm.InitLen(response.UUID)
+		conn.WriteJSON(response)
 
-	if (err != nil) {
-		logs.Pretty(err)
-		logs.Error(`Impossible to upgrade connexion : ` + err.Error())
-		return
-	}
-
-	response := &WSResponse{}
-	response.Step = 1
-	response.UUID, _ = generateUUID(32)
-	rm.InitWs(response.UUID, connection)
-	rm.InitLen(response.UUID)
-	connection.WriteJSON(response)
-
-	for {
-		if _, isOpen, ok := rm.LoadWs(response.UUID); ok {
-			if (!isOpen) {
-				return
+		for {
+			if _, isOpen, ok := rm.LoadWs(response.UUID); ok {
+				if (!isOpen) {
+					return
+				}
 			}
 		}
-	}
-}
-func	WSUploadPictureFast(ctx *fasthttp.RequestCtx) {
-	logs.Pretty(ctx.Request.Header.ConnectionUpgrade(), ctx.Response.Header.ConnectionUpgrade(), websocket.FastHTTPIsWebSocketUpgrade(ctx))
-
-	err := fastupgrader.Upgrade(ctx, func(conn *websocket.Conn) {
-		logs.Pretty(`HERE`)
-		// response := &WSResponse{}
-		// response.Step = 1
-		// response.UUID, _ = generateUUID(32)
-		// rm.InitWs(response.UUID, conn)
-		// rm.InitLen(response.UUID)
-		// conn.WriteJSON(response)
-
-		// for {
-		// 	if _, isOpen, ok := rm.LoadWs(response.UUID); ok {
-		// 		if (!isOpen) {
-		// 			return
-		// 		}
-		// 	}
-		// }
 
 	})
 	if (err != nil) {

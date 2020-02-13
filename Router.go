@@ -5,7 +5,7 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 13:02:11
+** @Last modified time:		Thursday 13 February 2020 - 13:32:00
 *******************************************************************************/
 
 package			main
@@ -14,26 +14,14 @@ import			_ "os"
 import			"github.com/microgolang/logs"
 import			"github.com/valyala/fasthttp"
 import			"github.com/buaazp/fasthttprouter"
-import		fastwebsocket	"github.com/panghostlin/websocket"
-import			"github.com/julienschmidt/httprouter"
-import			"github.com/gorilla/websocket"
-import		"net/http"
+import			"github.com/fasthttp/websocket"
 
-
-var fastupgrader = fastwebsocket.FastHTTPUpgrader{
+var fastupgrader = websocket.FastHTTPUpgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
 	CheckOrigin: func(ctx *fasthttp.RequestCtx) bool {
 		return true
 	},
-}
-
-var upgrader = websocket.Upgrader{
-    ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
-	CheckOrigin: func(r * http.Request) bool {
-        return true // Disable CORS for testing
-    },
 }
 
 func	WithAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
@@ -58,16 +46,6 @@ func	WithAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
 		h(ctx)
 	})
 }
-func	WithWS(h fasthttp.RequestHandler) fasthttp.RequestHandler {
-	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
-
-		ctx.Request.Header.
-		logs.Pretty(ctx.Request.Header.ConnectionUpgrade())
-		ctx.Request.Header.Set(`Connection`, `upgrade`)
-		ctx.Response.Header.Set(`Connection`, `upgrade`)
-		h(ctx)
-	})
-}
 
 func	InitRouter() func(*fasthttp.RequestCtx) {
 	router := fasthttprouter.New()
@@ -75,7 +53,7 @@ func	InitRouter() func(*fasthttp.RequestCtx) {
 	router.POST("/loginMember/", LoginMember)
 
 	router.POST("/uploadPicture/", WithAuth(UploadPicture))
-	router.GET("/wss/uploadPicture/", WithWS(WSUploadPictureFast))
+	router.GET("/ws/uploadPicture/", WSUploadPicture)
 	router.GET("/downloadPicture/:pictureSize/:pictureID", WithAuth(DownloadPicture))
 	router.POST("/deletePictures/", WithAuth(DeletePictures))
 
@@ -92,11 +70,3 @@ func	InitRouter() func(*fasthttp.RequestCtx) {
 
 	return router.Handler
 }
-
-func	InitWebsocketRouter() (*httprouter.Router) {
-	router := httprouter.New()
-
-	router.GET("/ws/uploadPicture/", WSUploadPicture)
-	return router
-}
-
