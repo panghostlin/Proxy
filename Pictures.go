@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:00:16
+** @Last modified time:		Thursday 13 February 2020 - 19:47:19
 *******************************************************************************/
 
 package			main
@@ -21,7 +21,7 @@ import			"github.com/fasthttp/websocket"
 import			"encoding/json"
 import			"bytes"
 
-type	WSResponse struct {
+type	wsResponse struct {
 	UUID		string
 	Step		int8
 	Picture		*pictures.ListPictures_Content
@@ -30,7 +30,7 @@ type	WSResponse struct {
 
 func	streamWebsocketMessage(contentUUID string, step int8, picture *pictures.ListPictures_Content, isSuccess bool) {
 	if wsConn, _, ok := rm.LoadWs(contentUUID); ok {
-		response := &WSResponse{}
+		response := &wsResponse{}
 		response.Step = step
 		response.UUID = contentUUID
 		response.Picture = picture
@@ -103,7 +103,7 @@ func	uploadPictureGRPC(memberID string, file []byte, contentUUID, contentName, c
 	}
 	return nil
 }
-func	UploadPicture(ctx *fasthttp.RequestCtx) {
+func	uploadPicture(ctx *fasthttp.RequestCtx) {
 	contentType := string(ctx.Request.Header.Peek(`X-Content-Type`))
 	contentNameEncoded := string(ctx.Request.Header.Peek(`X-Content-Name`))
 	contentChunkIDStr := string(ctx.Request.Header.Peek(`X-Chunk-ID`))
@@ -160,7 +160,7 @@ func	UploadPicture(ctx *fasthttp.RequestCtx) {
 }
 
 /******************************************************************************
-**	WSUploadPicture
+**	wsUploadPicture
 **	Websocket opened with the UploadPicture call, sending information to the
 **	client about the current status (Step) :
 **	1 : Opening websocket and sending UUID for this upload
@@ -169,9 +169,9 @@ func	UploadPicture(ctx *fasthttp.RequestCtx) {
 **	3 : The encryption is done, we can now save the image
 **	4 : The image is saved, sending it's ID to work with if on the client side
 ******************************************************************************/
-func	WSUploadPicture(ctx *fasthttp.RequestCtx) {
+func	wsUploadPicture(ctx *fasthttp.RequestCtx) {
 	err := fastupgrader.Upgrade(ctx, func(conn *websocket.Conn) {
-		response := &WSResponse{}
+		response := &wsResponse{}
 		response.Step = 1
 		response.UUID, _ = generateUUID(32)
 		rm.InitWs(response.UUID, conn)
@@ -246,21 +246,13 @@ func	downloadPictureGRPC(pictureID, pictureSize, hashKey string) (*pictures.Down
 		resp.Chunk = append(resp.GetChunk(), receiver.GetChunk()...)
 	}
 }
-func	DownloadPicture(ctx *fasthttp.RequestCtx) {
+func	downloadPicture(ctx *fasthttp.RequestCtx) {
 	hashKey := ctx.UserValue("hashKey").([]byte)
 	pictureID := ctx.UserValue("pictureID").(string)
 	pictureSize := ctx.UserValue("pictureSize").(string)
 
 	response, err := downloadPictureGRPC(pictureID, pictureSize, string(hashKey))
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(false)	
-		return
-	}
-	ctx.Response.Header.SetContentType(response.GetContentType())
-	ctx.Response.SetStatusCode(200)
-	ctx.Write(response.GetChunk())
+	resolvePicture(ctx, response.GetChunk(), response.GetContentType(), err)
 }
 
 /******************************************************************************
@@ -279,7 +271,7 @@ func	deletePicturesGRPC(memberID string, picturesID []string) (bool, error) {
 	}
 	return data.GetSuccess(), nil
 }
-func	DeletePictures(ctx *fasthttp.RequestCtx) {
+func	deletePictures(ctx *fasthttp.RequestCtx) {
 	type	Srequest struct {PicturesID []string}
 	request := &Srequest{}
 	json.Unmarshal(ctx.PostBody(), &request)
@@ -306,7 +298,7 @@ func	ListPicturesByMemberGRPC(memberID string) (*pictures.ListPicturesByMemberID
 	}
 	return result, nil
 }
-func	ListPicturesByMember(ctx *fasthttp.RequestCtx) {
+func	listPicturesByMember(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 	data, err := ListPicturesByMemberGRPC(memberID)
 	resolve(ctx, data.GetPictures(), err)
@@ -331,7 +323,7 @@ func	ListPicturesByAlbumGRPC(memberID, albumID string) (*pictures.ListPicturesBy
 	}
 	return result, nil
 }
-func	ListPicturesByAlbum(ctx *fasthttp.RequestCtx) {
+func	listPicturesByAlbum(ctx *fasthttp.RequestCtx) {
 	type	Srequest struct {AlbumID string}
 	request := &Srequest{}
 
@@ -362,7 +354,7 @@ func	setPictureAlbumGRPC(memberID, albumID string, groupIDs []string) (bool, err
 	}
 	return result.GetSuccess(), nil
 }
-func	SetPicturesAlbum(ctx *fasthttp.RequestCtx) {
+func	setPicturesAlbum(ctx *fasthttp.RequestCtx) {
 	type	Srequest struct {
 		AlbumID string
 		GroupIDs []string

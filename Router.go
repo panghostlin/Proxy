@@ -5,7 +5,7 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:04:53
+** @Last modified time:		Thursday 13 February 2020 - 19:47:51
 *******************************************************************************/
 
 package			main
@@ -35,6 +35,16 @@ func	resolve(ctx *fasthttp.RequestCtx, data interface{}, err error) {
 	ctx.Response.Header.SetContentType(`application/json`)
 	ctx.Response.SetStatusCode(200)
 	json.NewEncoder(ctx).Encode(data)
+}
+func	resolvePicture(ctx *fasthttp.RequestCtx, data []byte, contentType string, err error) {
+	if (err != nil) {
+		ctx.Response.SetStatusCode(404)
+		ctx.Write([]byte{})
+		return
+	}
+	ctx.Response.Header.SetContentType(contentType)
+	ctx.Response.SetStatusCode(200)
+	ctx.Write(data)
 }
 
 func	withAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
@@ -66,14 +76,14 @@ func	InitRouter() func(*fasthttp.RequestCtx) {
 	router.POST("/loginMember/", loginMember)
 	router.POST("/checkMember/", withAuth(checkMember))
 
-	router.POST("/uploadPicture/", withAuth(UploadPicture))
-	router.GET("/ws/uploadPicture/", WSUploadPicture)
-	router.GET("/downloadPicture/:pictureSize/:pictureID", withAuth(DownloadPicture))
-	router.POST("/deletePictures/", withAuth(DeletePictures))
+	router.POST("/uploadPicture/", withAuth(uploadPicture))
+	router.GET("/ws/uploadPicture/", wsUploadPicture)
+	router.GET("/downloadPicture/:pictureSize/:pictureID", withAuth(downloadPicture))
+	router.POST("/deletePictures/", withAuth(deletePictures))
 
-	router.POST("/pictures/getby/member/", withAuth(ListPicturesByMember))
-	router.POST("/pictures/getby/album/", withAuth(ListPicturesByAlbum))
-	router.POST("/pictures/set/album/", withAuth(SetPicturesAlbum))
+	router.POST("/pictures/getby/member/", withAuth(listPicturesByMember))
+	router.POST("/pictures/getby/album/", withAuth(listPicturesByAlbum))
+	router.POST("/pictures/set/album/", withAuth(setPicturesAlbum))
 
 	router.POST("/albums/create/", withAuth(createAlbum))
 	router.POST("/albums/list/", withAuth(listAlbums))
