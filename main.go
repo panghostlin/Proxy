@@ -5,7 +5,7 @@
 ** @Filename:				main.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 13:27:14
+** @Last modified time:		Thursday 13 February 2020 - 19:53:28
 *******************************************************************************/
 
 package			main
@@ -24,14 +24,14 @@ import			"github.com/valyala/fasthttp"
 
 
 const	DEFAULT_CHUNK_SIZE = 64 * 1024
-type	Sclients struct {
+type	sClients struct {
 	members		members.MembersServiceClient
 	keys		keys.KeysServiceClient
 	pictures	pictures.PicturesServiceClient
 	albums		pictures.AlbumsServiceClient
 }
 var		connections map[string](*grpc.ClientConn)
-var		clients = &Sclients{}
+var		clients = &sClients{}
 
 func fileExists(filename string) bool {
     info, err := os.Stat(filename)
@@ -43,7 +43,7 @@ func fileExists(filename string) bool {
 
 func	serveProxy() {
 	logs.Success(`Listening on :8000`)
-	fasthttp.ListenAndServe(`:8000`, InitRouter())
+	fasthttp.ListenAndServe(`:8000`, initRouter())
 }
 func	bridgeInsecureMicroservice(serverName string, clientMS string) (*grpc.ClientConn) {
 	logs.Warning("Using insecure connection")

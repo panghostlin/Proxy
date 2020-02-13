@@ -5,7 +5,7 @@
 ** @Filename:				Cookies.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 18:45:39
+** @Last modified time:		Thursday 13 February 2020 - 19:50:20
 *******************************************************************************/
 
 package			main
@@ -31,7 +31,7 @@ func	setCookie(ctx *fasthttp.RequestCtx, key, value string) {
 	ctx.Response.Header.SetCookie(cookie)
 }
 
-func	CheckMemberCookie(ctx *fasthttp.RequestCtx, requestAccessToken string) (bool, string) {
+func	checkMemberCookie(ctx *fasthttp.RequestCtx, requestAccessToken string) (bool, string) {
 	req := &members.CheckAccessTokenRequest{AccessToken: requestAccessToken}
 	result, err := clients.members.CheckAccessToken(context.Background(), req)
 

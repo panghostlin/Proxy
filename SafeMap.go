@@ -5,7 +5,7 @@
 ** @Filename:				SafeMap.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 13:26:52
+** @Last modified time:		Thursday 13 February 2020 - 19:52:48
 *******************************************************************************/
 
 package			main
@@ -13,7 +13,7 @@ package			main
 import			"sync"
 import			"github.com/fasthttp/websocket"
 
-type RegularIntMap struct {
+type regularIntMap struct {
 	sync.RWMutex
 	internal	map[string][]([]byte)
 	len			map[string](uint)
@@ -21,8 +21,8 @@ type RegularIntMap struct {
 	wsConnOpen	map[string](bool)
 }
 
-func NewRegularIntMap() *RegularIntMap {
-	return &RegularIntMap{
+func newRegularIntMap() *regularIntMap {
+	return &regularIntMap{
 		internal: make(map[string][]([]byte)),
 		len: make(map[string](uint)),
 		wsConn: make(map[string](*websocket.Conn)),
@@ -30,19 +30,19 @@ func NewRegularIntMap() *RegularIntMap {
 	}
 }
 
-func (rm *RegularIntMap) LoadContent(key string) (value []([]byte), ok bool) {
+func (rm *regularIntMap) loadContent(key string) (value []([]byte), ok bool) {
 	rm.RLock()
 	result, ok := rm.internal[key]
 	rm.RUnlock()
 	return result, ok
 }
-func (rm *RegularIntMap) LoadLen(key string) (value uint, ok bool) {
+func (rm *regularIntMap) loadLen(key string) (value uint, ok bool) {
 	rm.RLock()
 	result, ok := rm.len[key]
 	rm.RUnlock()
 	return result, ok
 }
-func (rm *RegularIntMap) LoadWs(key string) (value *websocket.Conn, isOpen bool, ok bool) {
+func (rm *regularIntMap) loadWs(key string) (value *websocket.Conn, isOpen bool, ok bool) {
 	rm.RLock()
 	result, ok := rm.wsConn[key]
 	resultOpen, ok := rm.wsConnOpen[key]
@@ -51,12 +51,12 @@ func (rm *RegularIntMap) LoadWs(key string) (value *websocket.Conn, isOpen bool,
 }
 
 
-func (rm *RegularIntMap) InitLen(key string) {
+func (rm *regularIntMap) initLen(key string) {
 	rm.Lock()
 	rm.len[key] = 0
 	rm.Unlock()
 }
-func (rm *RegularIntMap) InitWs(key string, value *websocket.Conn) {
+func (rm *regularIntMap) initWs(key string, value *websocket.Conn) {
 	rm.Lock()
 	rm.wsConn[key] = value
 	rm.wsConnOpen[key] = true
@@ -64,24 +64,24 @@ func (rm *RegularIntMap) InitWs(key string, value *websocket.Conn) {
 }
 
 
-func (rm *RegularIntMap) SetContent(key string, value []([]byte)) {
+func (rm *regularIntMap) setContent(key string, value []([]byte)) {
 	rm.Lock()
 	rm.internal[key] = value
 	rm.Unlock()
 }
-func (rm *RegularIntMap) SetWs(key string, value *websocket.Conn) {
+func (rm *regularIntMap) setWs(key string, value *websocket.Conn) {
 	rm.Lock()
 	rm.wsConn[key] = value
 	rm.Unlock()
 }
-func (rm *RegularIntMap) IncLen(key string) {
+func (rm *regularIntMap) incLen(key string) {
 	rm.Lock()
 	rm.len[key] += 1
 	rm.Unlock()
 }
 
 
-func (rm *RegularIntMap) Delete(key string) {
+func (rm *regularIntMap) delete(key string) {
 	rm.Lock()
 	delete(rm.internal, key)
 	delete(rm.len, key)
@@ -90,5 +90,5 @@ func (rm *RegularIntMap) Delete(key string) {
 }
 
 
-var rm = NewRegularIntMap()
+var rm = newRegularIntMap()
 

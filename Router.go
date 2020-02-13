@@ -5,7 +5,7 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:47:51
+** @Last modified time:		Thursday 13 February 2020 - 19:50:57
 *******************************************************************************/
 
 package			main
@@ -57,7 +57,7 @@ func	withAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
 			return
 		}
 
-		isSuccess, memberID := CheckMemberCookie(ctx, string(accessToken))
+		isSuccess, memberID := checkMemberCookie(ctx, string(accessToken))
 		if (!isSuccess) {
 			ctx.Error(fasthttp.StatusMessage(fasthttp.StatusUnauthorized), fasthttp.StatusUnauthorized)
 			return
@@ -70,7 +70,7 @@ func	withAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
 	})
 }
 
-func	InitRouter() func(*fasthttp.RequestCtx) {
+func	initRouter() func(*fasthttp.RequestCtx) {
 	router := fasthttprouter.New()
 	router.POST("/newMember/", createNewMember)
 	router.POST("/loginMember/", loginMember)

@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:47:19
+** @Last modified time:		Thursday 13 February 2020 - 19:53:06
 *******************************************************************************/
 
 package			main
@@ -29,7 +29,7 @@ type	wsResponse struct {
 }
 
 func	streamWebsocketMessage(contentUUID string, step int8, picture *pictures.ListPictures_Content, isSuccess bool) {
-	if wsConn, _, ok := rm.LoadWs(contentUUID); ok {
+	if wsConn, _, ok := rm.loadWs(contentUUID); ok {
 		response := &wsResponse{}
 		response.Step = step
 		response.UUID = contentUUID
@@ -120,38 +120,38 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 		contentName = ``
 	}
 
-	if block, ok := rm.LoadContent(contentUUID); ok {
+	if block, ok := rm.loadContent(contentUUID); ok {
 		currentBlock := block
 		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], ctx.Request.Body()...)
-		rm.SetContent(contentUUID, currentBlock)
+		rm.setContent(contentUUID, currentBlock)
 	} else {
 		block = make([]([]byte), contentParts + 1)
 		currentBlock := block
 		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], ctx.Request.Body()...)
-		rm.SetContent(contentUUID, currentBlock)
+		rm.setContent(contentUUID, currentBlock)
 	}
 
 	
-	if _, ok := rm.LoadLen(contentUUID); ok {
-		rm.IncLen(contentUUID)
+	if _, ok := rm.loadLen(contentUUID); ok {
+		rm.incLen(contentUUID)
 	} else {
-		rm.InitLen(contentUUID)
-		rm.IncLen(contentUUID)
+		rm.initLen(contentUUID)
+		rm.incLen(contentUUID)
 	}
 	
 
-	if len, ok := rm.LoadLen(contentUUID); ok {
+	if len, ok := rm.loadLen(contentUUID); ok {
 		if (len >= uint(contentParts)) {
-			if blobArr, ok := rm.LoadContent(contentUUID); ok {
+			if blobArr, ok := rm.loadContent(contentUUID); ok {
 				blob := bytes.Join(blobArr, nil)
 	
 				streamWebsocketMessage(contentUUID, 2, nil, true)
 
 				uploadPictureGRPC(ctx.UserValue(`memberID`).(string), blob, contentUUID, contentName, contentType, contentAlbumID, contentLastModified)
 
-				if wsConn, _, ok := rm.LoadWs(contentUUID); ok {
+				if wsConn, _, ok := rm.loadWs(contentUUID); ok {
 					wsConn.Close()
-					rm.Delete(contentUUID)
+					rm.delete(contentUUID)
 				}
 
 			}
@@ -174,12 +174,12 @@ func	wsUploadPicture(ctx *fasthttp.RequestCtx) {
 		response := &wsResponse{}
 		response.Step = 1
 		response.UUID, _ = generateUUID(32)
-		rm.InitWs(response.UUID, conn)
-		rm.InitLen(response.UUID)
+		rm.initWs(response.UUID, conn)
+		rm.initLen(response.UUID)
 		conn.WriteJSON(response)
 
 		for {
-			if _, isOpen, ok := rm.LoadWs(response.UUID); ok {
+			if _, isOpen, ok := rm.loadWs(response.UUID); ok {
 				if (!isOpen) {
 					return
 				}
@@ -308,7 +308,7 @@ func	listPicturesByMember(ctx *fasthttp.RequestCtx) {
 /******************************************************************************
 **	listPicturesByAlbumGRPC
 ******************************************************************************/
-func	ListPicturesByAlbumGRPC(memberID, albumID string) (*pictures.ListPicturesByAlbumIDResponse, error) {
+func	listPicturesByAlbumGRPC(memberID, albumID string) (*pictures.ListPicturesByAlbumIDResponse, error) {
 	/**************************************************************************
 	**	0. Init the data to send to the Pictures microservice
 	**************************************************************************/
@@ -330,13 +330,13 @@ func	listPicturesByAlbum(ctx *fasthttp.RequestCtx) {
 	json.Unmarshal(ctx.PostBody(), &request)
 	memberID := ctx.UserValue("memberID").(string)
 
-	data, err := ListPicturesByAlbumGRPC(memberID, request.AlbumID)
+	data, err := listPicturesByAlbumGRPC(memberID, request.AlbumID)
 	resolve(ctx, data.GetPictures(), err)
 }
 
 
 /******************************************************************************
-**	listPicturesByAlbumGRPC
+**	setPictureAlbumGRPC
 ******************************************************************************/
 func	setPictureAlbumGRPC(memberID, albumID string, groupIDs []string) (bool, error) {
 	/**************************************************************************
