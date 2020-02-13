@@ -5,16 +5,31 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:01:03
+** @Last modified time:		Thursday 13 February 2020 - 19:12:45
 *******************************************************************************/
 
 package			main
 
 import			"context"
+import			"errors"
 import			"encoding/json"
 import			"github.com/microgolang/logs"
 import			"github.com/valyala/fasthttp"
 import			"github.com/panghostlin/SDK/Members"
+
+func	setCookieAndResolve(ctx *fasthttp.RequestCtx, cookie, hashKey string, err error) {
+	if (err != nil) {
+		ctx.Response.SetStatusCode(500)
+		json.NewEncoder(ctx).Encode(false)
+		return
+	}
+
+	setCookie(ctx, `accessToken`, cookie)
+	setCookie(ctx, `hashKey`, hashKey)
+	ctx.Response.Header.SetContentType(`application/json`)
+	ctx.Response.SetStatusCode(200)
+	json.NewEncoder(ctx).Encode(true)
+}
 
 /******************************************************************************
 **	createMemberGRPC
@@ -23,33 +38,23 @@ import			"github.com/panghostlin/SDK/Members"
 **	CreateNewMember
 **	Router proxy function to create a member.
 ******************************************************************************/
-func	createMemberGRPC(data []byte) (string, *members.Cookie, string, bool, error) {
+func	createMemberGRPC(data []byte) (string, *members.Cookie, string, error) {
 	req := &members.CreateMemberRequest{}
 	json.Unmarshal(data, &req)
 
 	result, err := clients.members.CreateMember(context.Background(), req)
 	if (err != nil) {
-		logs.Error(`Fail to communicate with microservice`, err)
-		return ``, &members.Cookie{}, ``, false, err
+		logs.Error(`CreateMember : fail to communicate with microservice`, err)
+		return ``, &members.Cookie{}, ``, err
+	} else if (!result.GetSuccess()) {
+		logs.Error(`CreateMember : fail to create the member`)
+		return ``, &members.Cookie{}, ``, errors.New(`Failed to create member`)
 	}
-	if (!result.Success) {
-		logs.Error(`Failed to create this user`)
-		return ``, &members.Cookie{}, ``, false, nil
-	}
-	return result.MemberID, result.AccessToken, result.GetHashKey(), true, nil
+	return result.GetMemberID(), result.GetAccessToken(), result.GetHashKey(), nil
 }
-func	CreateNewMember(ctx *fasthttp.RequestCtx) {
-	_, cookie, hashkey, success, err := createMemberGRPC(ctx.PostBody())
-	if (!success || err != nil) {
-		ctx.Response.SetStatusCode(500)
-		json.NewEncoder(ctx).Encode(false)
-		return
-	}
-
-	setCookie(ctx, `accessToken`, cookie.Value)
-	setCookie(ctx, `hashKey`, hashkey)
-	
-	resolve(ctx, success, nil)
+func	createNewMember(ctx *fasthttp.RequestCtx) {
+	_, cookie, hashKey, err := createMemberGRPC(ctx.PostBody())
+	setCookieAndResolve(ctx, cookie.Value, hashKey, err)
 }
 
 
@@ -60,39 +65,30 @@ func	CreateNewMember(ctx *fasthttp.RequestCtx) {
 **	LoginMember
 **	Router proxy function to login a member.
 ******************************************************************************/
-func	loginMemberGRPC(data []byte) (string, *members.Cookie, string, bool, error) {
+func	loginMemberGRPC(data []byte) (string, *members.Cookie, string, error) {
 	req := &members.LoginMemberRequest{}
 	json.Unmarshal(data, &req)
 
 	result, err := clients.members.LoginMember(context.Background(), req)
 	if (err != nil) {
-		logs.Error(`Fail to communicate with microservice`, err)
-		return ``, &members.Cookie{}, ``, false, err
+		logs.Error(`LoginMember : fail to communicate with microservice`, err)
+		return ``, &members.Cookie{}, ``, err
+	} else if (!result.GetSuccess()) {
+		logs.Error(`LoginMember : fail to login the member`)
+		return ``, &members.Cookie{}, ``, errors.New(`Failed to create member`)
 	}
-	if (!result.Success) {
-		logs.Error(`Failed to login this user`)
-		return ``, &members.Cookie{}, ``, false, nil
-	}
-	return result.GetMemberID(), result.GetAccessToken(), result.GetHashKey(), true, nil
+	return result.GetMemberID(), result.GetAccessToken(), result.GetHashKey(), nil
 }
-func	LoginMember(ctx *fasthttp.RequestCtx) {
-	_, cookie, hashkey, success, err := loginMemberGRPC(ctx.PostBody())
-	if (!success || err != nil) {
-		ctx.Response.SetStatusCode(500)
-		json.NewEncoder(ctx).Encode(false)
-		return
-	}
-
-	setCookie(ctx, `accessToken`, cookie.Value)
-	setCookie(ctx, `hashKey`, hashkey)
-	resolve(ctx, success, nil)
+func	loginMember(ctx *fasthttp.RequestCtx) {
+	_, cookie, hashKey, err := loginMemberGRPC(ctx.PostBody())
+	setCookieAndResolve(ctx, cookie.Value, hashKey, err)
 }
 
 /******************************************************************************
 **	CheckMember
 **	Router proxy function to check if a member exists and is connected
 ******************************************************************************/
-func	CheckMember(ctx *fasthttp.RequestCtx) {
+func	checkMember(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(200)
 	json.NewEncoder(ctx).Encode(true)
 }
