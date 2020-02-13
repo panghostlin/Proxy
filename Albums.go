@@ -5,7 +5,7 @@
 ** @Filename:				Albums.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 18:50:28
+** @Last modified time:		Thursday 13 February 2020 - 18:56:21
 *******************************************************************************/
 
 package			main
@@ -54,7 +54,7 @@ func	createAlbumGRPC(memberID string, req *pictures.CreateAlbumRequest) (*pictur
 	}
 	return result, nil
 }
-func	CreateAlbum(ctx *fasthttp.RequestCtx) {
+func	createAlbum(ctx *fasthttp.RequestCtx) {
 	req := &pictures.CreateAlbumRequest{}
 	json.Unmarshal(ctx.PostBody(), &req)
 	memberID := ctx.UserValue("memberID").(string)
@@ -77,7 +77,7 @@ func	listAlbumsGRPC(memberID string) (*pictures.ListAlbumsResponse, error) {
 	}
 	return result, nil
 }
-func	ListAlbums(ctx *fasthttp.RequestCtx) {
+func	listAlbums(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 	data, err := listAlbumsGRPC(memberID)
 
@@ -96,7 +96,7 @@ func	setAlbumCoverGRPC(req *pictures.SetAlbumCoverRequest) (*pictures.SetAlbumCo
 	}
 	return result, nil
 }
-func	SetAlbumCover(ctx *fasthttp.RequestCtx) {
+func	setAlbumCover(ctx *fasthttp.RequestCtx) {
 	req := &pictures.SetAlbumCoverRequest{}
 	json.Unmarshal(ctx.PostBody(), &req)
 	req.MemberID = ctx.UserValue("memberID").(string)
@@ -117,7 +117,7 @@ func	setAlbumNameGRPC(req *pictures.SetAlbumNameRequest) (*pictures.SetAlbumName
 	}
 	return result, nil
 }
-func	SetAlbumName(ctx *fasthttp.RequestCtx) {
+func	setAlbumName(ctx *fasthttp.RequestCtx) {
 	req := &pictures.SetAlbumNameRequest{}
 	json.Unmarshal(ctx.PostBody(), &req)
 	req.MemberID = ctx.UserValue("memberID").(string)
@@ -138,7 +138,7 @@ func	deleteAlbumGRPC(req *pictures.DeleteAlbumRequest) (*pictures.DeleteAlbumRes
 	}
 	return result, nil
 }
-func	DeleteAlbum(ctx *fasthttp.RequestCtx) {
+func	deleteAlbum(ctx *fasthttp.RequestCtx) {
 	req := &pictures.DeleteAlbumRequest{}
 	json.Unmarshal(ctx.PostBody(), &req)
 	req.MemberID = ctx.UserValue("memberID").(string)
@@ -159,7 +159,7 @@ func	getAlbumGRPC(req *pictures.GetAlbumRequest) (*pictures.GetAlbumResponse, er
 	}
 	return result, nil
 }
-func	GetAlbum(ctx *fasthttp.RequestCtx) {
+func	getAlbum(ctx *fasthttp.RequestCtx) {
 	req := &pictures.GetAlbumRequest{}
 	json.Unmarshal(ctx.PostBody(), &req)
 	req.MemberID = ctx.UserValue("memberID").(string)

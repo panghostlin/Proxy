@@ -5,7 +5,7 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 15:15:03
+** @Last modified time:		Thursday 13 February 2020 - 18:56:02
 *******************************************************************************/
 
 package			main
@@ -62,12 +62,12 @@ func	InitRouter() func(*fasthttp.RequestCtx) {
 	router.POST("/pictures/getby/album/", WithAuth(ListPicturesByAlbum))
 	router.POST("/pictures/set/album/", WithAuth(SetPicturesAlbum))
 
-	router.POST("/albums/create/", WithAuth(CreateAlbum))
-	router.POST("/albums/list/", WithAuth(ListAlbums))
-	router.POST("/albums/get/", WithAuth(GetAlbum))
-	router.POST("/albums/delete/", WithAuth(DeleteAlbum))
-	router.POST("/albums/set/cover/", WithAuth(SetAlbumCover))
-	router.POST("/albums/set/name/", WithAuth(SetAlbumName))
+	router.POST("/albums/create/", WithAuth(createAlbum))
+	router.POST("/albums/list/", WithAuth(listAlbums))
+	router.POST("/albums/get/", WithAuth(getAlbum))
+	router.POST("/albums/delete/", WithAuth(deleteAlbum))
+	router.POST("/albums/set/cover/", WithAuth(setAlbumCover))
+	router.POST("/albums/set/name/", WithAuth(setAlbumName))
 
 	return router.Handler
 }
