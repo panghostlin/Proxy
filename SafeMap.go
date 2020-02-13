@@ -5,13 +5,14 @@
 ** @Filename:				SafeMap.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Sunday 12 January 2020 - 18:52:12
+** @Last modified time:		Thursday 13 February 2020 - 12:44:20
 *******************************************************************************/
 
 package			main
 
 import			"sync"
-import			"github.com/fasthttp/websocket"
+// import			"github.com/fasthttp/websocket"
+import			"github.com/gorilla/websocket"
 
 type RegularIntMap struct {
 	sync.RWMutex

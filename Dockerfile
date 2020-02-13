@@ -12,4 +12,4 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o pang
 RUN chmod +x wait-for-it.sh
 
 ENTRYPOINT [ "/bin/bash", "-c" ]
-EXPOSE 8000 8443
+EXPOSE 8000 8001

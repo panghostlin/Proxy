@@ -5,7 +5,7 @@
 ** @Filename:				Cookies.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Monday 10 February 2020 - 11:56:39
+** @Last modified time:		Tuesday 11 February 2020 - 20:45:56
 *******************************************************************************/
 
 package			main
@@ -25,6 +25,7 @@ func	SetHashKey(ctx *fasthttp.RequestCtx, memberID, hashKey string) {
 	cookie.SetPath(`/`)
 	cookie.SetHTTPOnly(true)
 	// cookie.SetSecure(true)
+	// cookie.SetSameSite(fasthttp.CookieSameSiteNoneMode)
 	// cookie.SetExpire(time.Unix(memberCookie.Expiration, 0))
 	cookie.SetExpire(time.Now().Add(REFRESH_TOKEN_EXPIRATION_DURATION))
 	ctx.Response.Header.SetCookie(cookie)
@@ -37,6 +38,7 @@ func	SetAccessToken(ctx *fasthttp.RequestCtx, memberID string, memberCookie *mem
 	cookie.SetPath(`/`)
 	cookie.SetHTTPOnly(true)
 	// cookie.SetSecure(true)
+	// cookie.SetSameSite(fasthttp.CookieSameSiteNoneMode)
 	// cookie.SetExpire(time.Unix(memberCookie.Expiration, 0))
 	cookie.SetExpire(time.Now().Add(REFRESH_TOKEN_EXPIRATION_DURATION))
 	ctx.Response.Header.SetCookie(cookie)
