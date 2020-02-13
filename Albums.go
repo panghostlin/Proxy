@@ -5,7 +5,7 @@
 ** @Filename:				Albums.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 18:56:21
+** @Last modified time:		Thursday 13 February 2020 - 18:57:51
 *******************************************************************************/
 
 package			main
@@ -15,18 +15,6 @@ import			"github.com/microgolang/logs"
 import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
 import			"encoding/json"
-
-func	resolveAlbum(ctx *fasthttp.RequestCtx, data interface{}, err error) {
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(false)
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data)
-}
 
 /******************************************************************************
 **	downloadPictureGRPC
@@ -60,7 +48,7 @@ func	createAlbum(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 
 	data, err := createAlbumGRPC(memberID, req)
-	resolveAlbum(ctx, data, err)
+	resolve(ctx, data, err)
 }
 
 /******************************************************************************
@@ -81,7 +69,7 @@ func	listAlbums(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 	data, err := listAlbumsGRPC(memberID)
 
-	resolveAlbum(ctx, data.GetAlbums(), err)
+	resolve(ctx, data.GetAlbums(), err)
 }
 
 
@@ -102,7 +90,7 @@ func	setAlbumCover(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := setAlbumCoverGRPC(req)
-	resolveAlbum(ctx, data.GetAlbumID(), err)
+	resolve(ctx, data.GetAlbumID(), err)
 }
 
 
@@ -123,7 +111,7 @@ func	setAlbumName(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := setAlbumNameGRPC(req)
-	resolveAlbum(ctx, data.GetAlbumID(), err)
+	resolve(ctx, data.GetAlbumID(), err)
 }
 
 
@@ -144,7 +132,7 @@ func	deleteAlbum(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := deleteAlbumGRPC(req)
-	resolveAlbum(ctx, data.GetSuccess(), err)
+	resolve(ctx, data.GetSuccess(), err)
 }
 
 
@@ -165,5 +153,5 @@ func	getAlbum(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := getAlbumGRPC(req)
-	resolveAlbum(ctx, data.GetAlbum(), err)
+	resolve(ctx, data.GetAlbum(), err)
 }

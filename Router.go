@@ -5,7 +5,7 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 18:56:02
+** @Last modified time:		Thursday 13 February 2020 - 18:58:05
 *******************************************************************************/
 
 package			main
@@ -15,6 +15,7 @@ import			"github.com/microgolang/logs"
 import			"github.com/valyala/fasthttp"
 import			"github.com/buaazp/fasthttprouter"
 import			"github.com/fasthttp/websocket"
+import			"encoding/json"
 
 var fastupgrader = websocket.FastHTTPUpgrader{
 	ReadBufferSize:  1024,
@@ -24,7 +25,19 @@ var fastupgrader = websocket.FastHTTPUpgrader{
 	},
 }
 
-func	WithAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
+func	resolve(ctx *fasthttp.RequestCtx, data interface{}, err error) {
+	if (err != nil) {
+		ctx.Response.Header.SetContentType(`application/json`)
+		ctx.Response.SetStatusCode(404)
+		json.NewEncoder(ctx).Encode(false)
+		return
+	}
+	ctx.Response.Header.SetContentType(`application/json`)
+	ctx.Response.SetStatusCode(200)
+	json.NewEncoder(ctx).Encode(data)
+}
+
+func	withAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
 	return fasthttp.RequestHandler(func(ctx *fasthttp.RequestCtx) {
 		accessToken := ctx.Request.Header.Cookie(`accessToken`)
 
@@ -51,23 +64,23 @@ func	InitRouter() func(*fasthttp.RequestCtx) {
 	router := fasthttprouter.New()
 	router.POST("/newMember/", CreateNewMember)
 	router.POST("/loginMember/", LoginMember)
-	router.POST("/checkMember/", WithAuth(CheckMember))
+	router.POST("/checkMember/", withAuth(CheckMember))
 
-	router.POST("/uploadPicture/", WithAuth(UploadPicture))
+	router.POST("/uploadPicture/", withAuth(UploadPicture))
 	router.GET("/ws/uploadPicture/", WSUploadPicture)
-	router.GET("/downloadPicture/:pictureSize/:pictureID", WithAuth(DownloadPicture))
-	router.POST("/deletePictures/", WithAuth(DeletePictures))
+	router.GET("/downloadPicture/:pictureSize/:pictureID", withAuth(DownloadPicture))
+	router.POST("/deletePictures/", withAuth(DeletePictures))
 
-	router.POST("/pictures/getby/member/", WithAuth(ListPicturesByMember))
-	router.POST("/pictures/getby/album/", WithAuth(ListPicturesByAlbum))
-	router.POST("/pictures/set/album/", WithAuth(SetPicturesAlbum))
+	router.POST("/pictures/getby/member/", withAuth(ListPicturesByMember))
+	router.POST("/pictures/getby/album/", withAuth(ListPicturesByAlbum))
+	router.POST("/pictures/set/album/", withAuth(SetPicturesAlbum))
 
-	router.POST("/albums/create/", WithAuth(createAlbum))
-	router.POST("/albums/list/", WithAuth(listAlbums))
-	router.POST("/albums/get/", WithAuth(getAlbum))
-	router.POST("/albums/delete/", WithAuth(deleteAlbum))
-	router.POST("/albums/set/cover/", WithAuth(setAlbumCover))
-	router.POST("/albums/set/name/", WithAuth(setAlbumName))
+	router.POST("/albums/create/", withAuth(createAlbum))
+	router.POST("/albums/list/", withAuth(listAlbums))
+	router.POST("/albums/get/", withAuth(getAlbum))
+	router.POST("/albums/delete/", withAuth(deleteAlbum))
+	router.POST("/albums/set/cover/", withAuth(setAlbumCover))
+	router.POST("/albums/set/name/", withAuth(setAlbumName))
 
 	return router.Handler
 }

@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 14:58:33
+** @Last modified time:		Thursday 13 February 2020 - 19:00:16
 *******************************************************************************/
 
 package			main
@@ -286,16 +286,7 @@ func	DeletePictures(ctx *fasthttp.RequestCtx) {
 
 	memberID := ctx.UserValue("memberID").(string)
 	isSuccess, err := deletePicturesGRPC(memberID, request.PicturesID)
-
-	if (err != nil || !isSuccess) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(isSuccess)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(isSuccess)
+	resolve(ctx, isSuccess, err)
 }
 
 
@@ -318,16 +309,7 @@ func	ListPicturesByMemberGRPC(memberID string) (*pictures.ListPicturesByMemberID
 func	ListPicturesByMember(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 	data, err := ListPicturesByMemberGRPC(memberID)
-
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(false)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data.GetPictures())
+	resolve(ctx, data.GetPictures(), err)
 }
 
 
@@ -350,24 +332,14 @@ func	ListPicturesByAlbumGRPC(memberID, albumID string) (*pictures.ListPicturesBy
 	return result, nil
 }
 func	ListPicturesByAlbum(ctx *fasthttp.RequestCtx) {
-	type	Srequest struct {
-		AlbumID	string
-	}
+	type	Srequest struct {AlbumID string}
 	request := &Srequest{}
 
 	json.Unmarshal(ctx.PostBody(), &request)
 	memberID := ctx.UserValue("memberID").(string)
 
 	data, err := ListPicturesByAlbumGRPC(memberID, request.AlbumID)
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(false)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data.GetPictures())
+	resolve(ctx, data.GetPictures(), err)
 }
 
 
@@ -400,13 +372,5 @@ func	SetPicturesAlbum(ctx *fasthttp.RequestCtx) {
 
 	memberID := ctx.UserValue("memberID").(string)
 	isSuccess, err := setPictureAlbumGRPC(memberID, request.AlbumID, request.GroupIDs)
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(false)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(isSuccess)
+	resolve(ctx, isSuccess, err)
 }

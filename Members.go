@@ -5,7 +5,7 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 18:45:57
+** @Last modified time:		Thursday 13 February 2020 - 19:01:03
 *******************************************************************************/
 
 package			main
@@ -49,9 +49,7 @@ func	CreateNewMember(ctx *fasthttp.RequestCtx) {
 	setCookie(ctx, `accessToken`, cookie.Value)
 	setCookie(ctx, `hashKey`, hashkey)
 	
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(success)
+	resolve(ctx, success, nil)
 }
 
 
@@ -87,10 +85,7 @@ func	LoginMember(ctx *fasthttp.RequestCtx) {
 
 	setCookie(ctx, `accessToken`, cookie.Value)
 	setCookie(ctx, `hashKey`, hashkey)
-
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(success)
+	resolve(ctx, success, nil)
 }
 
 /******************************************************************************
