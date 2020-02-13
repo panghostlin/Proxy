@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 13:26:46
+** @Last modified time:		Thursday 13 February 2020 - 14:58:33
 *******************************************************************************/
 
 package			main
@@ -188,7 +188,6 @@ func	WSUploadPicture(ctx *fasthttp.RequestCtx) {
 
 	})
 	if (err != nil) {
-		logs.Pretty(err)
 		logs.Error(`Impossible to upgrade connexion : ` + err.Error())
 		return
 	}
@@ -259,7 +258,6 @@ func	DownloadPicture(ctx *fasthttp.RequestCtx) {
 		json.NewEncoder(ctx).Encode(false)	
 		return
 	}
-	logs.Pretty(response.GetContentType())
 	ctx.Response.Header.SetContentType(response.GetContentType())
 	ctx.Response.SetStatusCode(200)
 	ctx.Write(response.GetChunk())

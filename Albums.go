@@ -5,7 +5,7 @@
 ** @Filename:				Albums.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Monday 10 February 2020 - 11:56:39
+** @Last modified time:		Thursday 13 February 2020 - 18:50:28
 *******************************************************************************/
 
 package			main
@@ -15,6 +15,18 @@ import			"github.com/microgolang/logs"
 import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
 import			"encoding/json"
+
+func	resolveAlbum(ctx *fasthttp.RequestCtx, data interface{}, err error) {
+	if (err != nil) {
+		ctx.Response.Header.SetContentType(`application/json`)
+		ctx.Response.SetStatusCode(404)
+		json.NewEncoder(ctx).Encode(false)
+		return
+	}
+	ctx.Response.Header.SetContentType(`application/json`)
+	ctx.Response.SetStatusCode(200)
+	json.NewEncoder(ctx).Encode(data)
+}
 
 /******************************************************************************
 **	downloadPictureGRPC
@@ -48,16 +60,7 @@ func	CreateAlbum(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 
 	data, err := createAlbumGRPC(memberID, req)
-
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(false)
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data)
+	resolveAlbum(ctx, data, err)
 }
 
 /******************************************************************************
@@ -78,15 +81,7 @@ func	ListAlbums(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 	data, err := listAlbumsGRPC(memberID)
 
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(true)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data.GetAlbums())
+	resolveAlbum(ctx, data.GetAlbums(), err)
 }
 
 
@@ -107,15 +102,7 @@ func	SetAlbumCover(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := setAlbumCoverGRPC(req)
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(true)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data.GetAlbumID())
+	resolveAlbum(ctx, data.GetAlbumID(), err)
 }
 
 
@@ -136,15 +123,7 @@ func	SetAlbumName(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := setAlbumNameGRPC(req)
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(true)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data.GetAlbumID())
+	resolveAlbum(ctx, data.GetAlbumID(), err)
 }
 
 
@@ -165,15 +144,7 @@ func	DeleteAlbum(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := deleteAlbumGRPC(req)
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(true)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data.GetSuccess())
+	resolveAlbum(ctx, data.GetSuccess(), err)
 }
 
 
@@ -194,13 +165,5 @@ func	GetAlbum(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := getAlbumGRPC(req)
-	if (err != nil) {
-		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
-		json.NewEncoder(ctx).Encode(true)	
-		return
-	}
-	ctx.Response.Header.SetContentType(`application/json`)
-	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(data.GetAlbum())
+	resolveAlbum(ctx, data.GetAlbum(), err)
 }

@@ -5,7 +5,7 @@
 ** @Filename:				Cookies.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Tuesday 11 February 2020 - 20:45:56
+** @Last modified time:		Thursday 13 February 2020 - 18:45:39
 *******************************************************************************/
 
 package			main
@@ -18,23 +18,10 @@ import			"github.com/panghostlin/SDK/Members"
 
 const	REFRESH_TOKEN_EXPIRATION_DURATION = (24 * time.Hour) * 31
 
-func	SetHashKey(ctx *fasthttp.RequestCtx, memberID, hashKey string) {
+func	setCookie(ctx *fasthttp.RequestCtx, key, value string) {
 	cookie := &fasthttp.Cookie{}
-	cookie.SetKey(`hashKey`)
-	cookie.SetValue(hashKey)
-	cookie.SetPath(`/`)
-	cookie.SetHTTPOnly(true)
-	// cookie.SetSecure(true)
-	// cookie.SetSameSite(fasthttp.CookieSameSiteNoneMode)
-	// cookie.SetExpire(time.Unix(memberCookie.Expiration, 0))
-	cookie.SetExpire(time.Now().Add(REFRESH_TOKEN_EXPIRATION_DURATION))
-	ctx.Response.Header.SetCookie(cookie)
-}
-
-func	SetAccessToken(ctx *fasthttp.RequestCtx, memberID string, memberCookie *members.Cookie) {
-	cookie := &fasthttp.Cookie{}
-	cookie.SetKey(`accessToken`)
-	cookie.SetValue(memberCookie.Value)
+	cookie.SetKey(key)
+	cookie.SetValue(value)
 	cookie.SetPath(`/`)
 	cookie.SetHTTPOnly(true)
 	// cookie.SetSecure(true)
@@ -56,6 +43,5 @@ func	CheckMemberCookie(ctx *fasthttp.RequestCtx, requestAccessToken string) (boo
 		logs.Error(`Failed to check token`)
 		return false, ``
 	}
-	// SetAccessToken(ctx, result.GetMemberID(), result.GetAccessToken())
 	return result.Success, result.GetMemberID()
 }

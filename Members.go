@@ -5,7 +5,7 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Monday 10 February 2020 - 11:56:39
+** @Last modified time:		Thursday 13 February 2020 - 18:45:57
 *******************************************************************************/
 
 package			main
@@ -39,15 +39,15 @@ func	createMemberGRPC(data []byte) (string, *members.Cookie, string, bool, error
 	return result.MemberID, result.AccessToken, result.GetHashKey(), true, nil
 }
 func	CreateNewMember(ctx *fasthttp.RequestCtx) {
-	memberID, cookie, hashkey, success, err := createMemberGRPC(ctx.PostBody())
+	_, cookie, hashkey, success, err := createMemberGRPC(ctx.PostBody())
 	if (!success || err != nil) {
 		ctx.Response.SetStatusCode(500)
 		json.NewEncoder(ctx).Encode(false)
 		return
 	}
 
-	SetAccessToken(ctx, memberID, cookie)
-	SetHashKey(ctx, memberID, hashkey)
+	setCookie(ctx, `accessToken`, cookie.Value)
+	setCookie(ctx, `hashKey`, hashkey)
 	
 	ctx.Response.Header.SetContentType(`application/json`)
 	ctx.Response.SetStatusCode(200)
@@ -78,17 +78,26 @@ func	loginMemberGRPC(data []byte) (string, *members.Cookie, string, bool, error)
 	return result.GetMemberID(), result.GetAccessToken(), result.GetHashKey(), true, nil
 }
 func	LoginMember(ctx *fasthttp.RequestCtx) {
-	memberID, cookie, hashkey, success, err := loginMemberGRPC(ctx.PostBody())
+	_, cookie, hashkey, success, err := loginMemberGRPC(ctx.PostBody())
 	if (!success || err != nil) {
 		ctx.Response.SetStatusCode(500)
 		json.NewEncoder(ctx).Encode(false)
 		return
 	}
 
-	SetAccessToken(ctx, memberID, cookie)
-	SetHashKey(ctx, memberID, hashkey)
+	setCookie(ctx, `accessToken`, cookie.Value)
+	setCookie(ctx, `hashKey`, hashkey)
 
 	ctx.Response.Header.SetContentType(`application/json`)
 	ctx.Response.SetStatusCode(200)
 	json.NewEncoder(ctx).Encode(success)
+}
+
+/******************************************************************************
+**	CheckMember
+**	Router proxy function to check if a member exists and is connected
+******************************************************************************/
+func	CheckMember(ctx *fasthttp.RequestCtx) {
+	ctx.Response.SetStatusCode(200)
+	json.NewEncoder(ctx).Encode(true)
 }
