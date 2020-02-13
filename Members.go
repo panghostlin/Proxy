@@ -5,13 +5,12 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:12:45
+** @Last modified time:		Thursday 13 February 2020 - 19:17:38
 *******************************************************************************/
 
 package			main
 
 import			"context"
-import			"errors"
 import			"encoding/json"
 import			"github.com/microgolang/logs"
 import			"github.com/valyala/fasthttp"
@@ -44,11 +43,8 @@ func	createMemberGRPC(data []byte) (string, *members.Cookie, string, error) {
 
 	result, err := clients.members.CreateMember(context.Background(), req)
 	if (err != nil) {
-		logs.Error(`CreateMember : fail to communicate with microservice`, err)
+		logs.Error(`CreateMember : fail to create member`, err)
 		return ``, &members.Cookie{}, ``, err
-	} else if (!result.GetSuccess()) {
-		logs.Error(`CreateMember : fail to create the member`)
-		return ``, &members.Cookie{}, ``, errors.New(`Failed to create member`)
 	}
 	return result.GetMemberID(), result.GetAccessToken(), result.GetHashKey(), nil
 }
@@ -71,11 +67,8 @@ func	loginMemberGRPC(data []byte) (string, *members.Cookie, string, error) {
 
 	result, err := clients.members.LoginMember(context.Background(), req)
 	if (err != nil) {
-		logs.Error(`LoginMember : fail to communicate with microservice`, err)
+		logs.Error(`LoginMember : fail to login member`, err)
 		return ``, &members.Cookie{}, ``, err
-	} else if (!result.GetSuccess()) {
-		logs.Error(`LoginMember : fail to login the member`)
-		return ``, &members.Cookie{}, ``, errors.New(`Failed to create member`)
 	}
 	return result.GetMemberID(), result.GetAccessToken(), result.GetHashKey(), nil
 }
