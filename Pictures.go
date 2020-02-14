@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:53:06
+** @Last modified time:		Friday 14 February 2020 - 01:02:13
 *******************************************************************************/
 
 package			main
@@ -36,7 +36,10 @@ func	streamWebsocketMessage(contentUUID string, step int8, picture *pictures.Lis
 		response.Picture = picture
 		response.IsSuccess = isSuccess
 
-		wsConn.WriteJSON(response)
+		err := wsConn.WriteJSON(response)
+		if (err != nil) {
+			logs.Warning(err.Error())
+		}
 	}
 }
 
@@ -92,16 +95,19 @@ func	uploadPictureGRPC(memberID string, file []byte, contentUUID, contentName, c
 
 	for {
 		recv, err := stream.Recv()
-		if err == io.EOF {
-			break
+		if (err == io.EOF) {
+			return nil
+		} else if (err != nil) {
+			streamWebsocketMessage(contentUUID, int8(4), nil, false)
+			return err
 		}
+
 		if (recv.GetPicture() != nil) {
 			streamWebsocketMessage(contentUUID, int8(recv.GetStep()), recv.GetPicture(), recv.GetSuccess())
-			break
+			return nil
 		}
-		streamWebsocketMessage(contentUUID, int8(recv.GetStep()), recv.GetPicture(), true)
+		streamWebsocketMessage(contentUUID, int8(recv.GetStep()), recv.GetPicture(), recv.GetSuccess())
 	}
-	return nil
 }
 func	uploadPicture(ctx *fasthttp.RequestCtx) {
 	contentType := string(ctx.Request.Header.Peek(`X-Content-Type`))
@@ -176,7 +182,10 @@ func	wsUploadPicture(ctx *fasthttp.RequestCtx) {
 		response.UUID, _ = generateUUID(32)
 		rm.initWs(response.UUID, conn)
 		rm.initLen(response.UUID)
-		conn.WriteJSON(response)
+		err := conn.WriteJSON(response)
+		if (err != nil) {
+			logs.Warning(err.Error())
+		}
 
 		for {
 			if _, isOpen, ok := rm.loadWs(response.UUID); ok {
