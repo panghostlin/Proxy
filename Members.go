@@ -5,7 +5,7 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:17:38
+** @Last modified time:		Friday 14 February 2020 - 18:18:23
 *******************************************************************************/
 
 package			main
@@ -31,51 +31,53 @@ func	setCookieAndResolve(ctx *fasthttp.RequestCtx, cookie, hashKey string, err e
 }
 
 /******************************************************************************
-**	createMemberGRPC
-**	Call the Members Microservice to create a new member.
-**
-**	CreateNewMember
 **	Router proxy function to create a member.
+**	Call the Members Microservice to create a new member.
 ******************************************************************************/
-func	createMemberGRPC(data []byte) (string, *members.Cookie, string, error) {
+func	createNewMember(ctx *fasthttp.RequestCtx) {
 	req := &members.CreateMemberRequest{}
-	json.Unmarshal(data, &req)
+	json.Unmarshal(ctx.PostBody(), &req)
 
 	result, err := clients.members.CreateMember(context.Background(), req)
 	if (err != nil) {
-		logs.Error(`CreateMember : fail to create member`, err)
-		return ``, &members.Cookie{}, ``, err
+		logs.Error(`LoginMember : fail to login member`, err)
+		setCookieAndResolve(ctx, ``, ``, err)
+	} else {
+		setCookieAndResolve(ctx, result.GetAccessToken().Value, result.GetHashKey(), err)
 	}
-	return result.GetMemberID(), result.GetAccessToken(), result.GetHashKey(), nil
-}
-func	createNewMember(ctx *fasthttp.RequestCtx) {
-	_, cookie, hashKey, err := createMemberGRPC(ctx.PostBody())
-	setCookieAndResolve(ctx, cookie.Value, hashKey, err)
-}
 
+}
 
 /******************************************************************************
-**	loginMemberGRPC
-**	Call the Members Microservice to login an existing member.
-**
-**	LoginMember
 **	Router proxy function to login a member.
+**	Call the Members Microservice to login an existing member.
 ******************************************************************************/
-func	loginMemberGRPC(data []byte) (string, *members.Cookie, string, error) {
+func	loginMember(ctx *fasthttp.RequestCtx) {
 	req := &members.LoginMemberRequest{}
-	json.Unmarshal(data, &req)
+	json.Unmarshal(ctx.PostBody(), &req)
 
 	result, err := clients.members.LoginMember(context.Background(), req)
 	if (err != nil) {
 		logs.Error(`LoginMember : fail to login member`, err)
-		return ``, &members.Cookie{}, ``, err
+		setCookieAndResolve(ctx, ``, ``, err)
+	} else {
+		setCookieAndResolve(ctx, result.GetAccessToken().Value, result.GetHashKey(), err)
 	}
-	return result.GetMemberID(), result.GetAccessToken(), result.GetHashKey(), nil
 }
-func	loginMember(ctx *fasthttp.RequestCtx) {
-	_, cookie, hashKey, err := loginMemberGRPC(ctx.PostBody())
-	setCookieAndResolve(ctx, cookie.Value, hashKey, err)
+
+/******************************************************************************
+**	Router proxy function to login a member.
+**	Call the Members Microservice to login an existing member.
+******************************************************************************/
+func	getMember(ctx *fasthttp.RequestCtx) {
+	req := &members.GetMemberRequest{}
+	req.MemberID = ctx.UserValue(`memberID`).(string)
+	req.HashKey = string(ctx.UserValue(`hashKey`).([]byte))
+
+	result, err := clients.members.GetMember(context.Background(), req)
+	resolve(ctx, result.GetMember(), err)
 }
+
 
 /******************************************************************************
 **	CheckMember
