@@ -5,7 +5,7 @@
 ** @Filename:				Cookies.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:50:20
+** @Last modified time:		Friday 14 February 2020 - 18:54:49
 *******************************************************************************/
 
 package			main
@@ -24,7 +24,8 @@ func	setCookie(ctx *fasthttp.RequestCtx, key, value string) {
 	cookie.SetValue(value)
 	cookie.SetPath(`/`)
 	cookie.SetHTTPOnly(true)
-	// cookie.SetSecure(true)
+	cookie.SetDomain(`majorcalamity.com`)
+	cookie.SetSecure(true)
 	// cookie.SetSameSite(fasthttp.CookieSameSiteNoneMode)
 	// cookie.SetExpire(time.Unix(memberCookie.Expiration, 0))
 	cookie.SetExpire(time.Now().Add(REFRESH_TOKEN_EXPIRATION_DURATION))
