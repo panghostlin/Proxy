@@ -5,18 +5,14 @@
 ** @Filename:				Helpers.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:43:00
+** @Last modified time:		Saturday 22 February 2020 - 11:46:08
 *******************************************************************************/
 
 package			main
 
-import			"os"
-import			"io"
 import			"fmt"
-import			"bytes"
 import			"crypto/rand"
 import			"encoding/base64"
-import			"github.com/microgolang/logs"
 
 func	generateByte(n uint32) ([]byte, error) {
 	b := make([]byte, n)
@@ -43,17 +39,4 @@ func	generateNonce(n uint32) (string, error) {
 	}
     ciphertext := base64.RawStdEncoding.EncodeToString(b)
     return ciphertext, nil
-}
-
-func	testCreatePicture(buffer []byte) {
-	filePath := `./` + `teste` + `.` + `jpg`
-	f, err := os.Create(filePath)
-	if (err != nil) {
-		logs.Error(`Impossible to create file`, err)
-	}
-	defer f.Close()
-	_, err = io.Copy(f, bytes.NewReader(buffer))
-	if (err != nil) {
-		logs.Error(`Impossible to copy data to file`, err)
-	}
 }

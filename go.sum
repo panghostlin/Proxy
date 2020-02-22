@@ -66,6 +66,8 @@ github.com/panghostlin/SDK v0.0.0-20200221162701-18229472aba6 h1:GU2TUN/AYPAgb02
 github.com/panghostlin/SDK v0.0.0-20200221162701-18229472aba6/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
 github.com/panghostlin/SDK v0.0.0-20200221164237-74c4dacb514d h1:GwfHn+47jalWT6ar/bg5eNGbfM2tnW7nTVLLHEbQL58=
 github.com/panghostlin/SDK v0.0.0-20200221164237-74c4dacb514d/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
+github.com/panghostlin/SDK v0.0.0-20200222103416-6812fcf53f33 h1:j4deYWR2ov+03gUMWt4nkAoaAEPgC0f9Zk5j5206yXU=
+github.com/panghostlin/SDK v0.0.0-20200222103416-6812fcf53f33/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
 github.com/panghostlin/websocket v1.4.2-0.20200213120905-854588738d5f h1:0DRjJGofZzAZUECyCS5CDjgcUEfhWL5Vpfzj75IFddc=
 github.com/panghostlin/websocket v1.4.2-0.20200213120905-854588738d5f/go.mod h1:xDJlgVwe2R8+5PXLNM+FdxTvbZgdOkgD1QbxFqBg1GE=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=
