@@ -5,7 +5,7 @@
 ** @Filename:				main.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:53:28
+** @Last modified time:		Friday 21 February 2020 - 17:46:42
 *******************************************************************************/
 
 package			main
@@ -17,16 +17,15 @@ import			"io/ioutil"
 import			"google.golang.org/grpc"
 import			"google.golang.org/grpc/credentials"
 import			"github.com/microgolang/logs"
-import			"github.com/panghostlin/SDK/Keys"
 import			"github.com/panghostlin/SDK/Members"
 import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
+import			"github.com/lab259/cors"
 
 
 const	DEFAULT_CHUNK_SIZE = 64 * 1024
 type	sClients struct {
 	members		members.MembersServiceClient
-	keys		keys.KeysServiceClient
 	pictures	pictures.PicturesServiceClient
 	albums		pictures.AlbumsServiceClient
 }
@@ -43,7 +42,38 @@ func fileExists(filename string) bool {
 
 func	serveProxy() {
 	logs.Success(`Listening on :8000`)
-	fasthttp.ListenAndServe(`:8000`, initRouter())
+
+	if (os.Getenv("IS_LOCAL") == `true`) {
+		c := cors.New(cors.Options{
+			AllowOriginFunc: func(origin string) bool {
+				return true
+			},
+			AllowedMethods: []string{`GET`, `POST`, `DELETE`, `PUT`, `OPTIONS`, `OPTION`},
+			AllowedHeaders:	[]string{
+				`Access-Control-Allow-Origin`,
+				`Access-Control-Allow-Credentials`,
+				`Content-Type`,
+				`Transfer-Encoding`,
+				`Authorization`,
+				`X-Content-Type`,
+				`X-Content-Length`,
+				`X-Content-Name`,
+				`X-Content-Parts`,
+				`X-Content-Last-Modified`,
+				`X-Content-UUID`,
+				`X-Content-AlbumID`,
+				`X-Chunk-ID`,
+				`X-Content-Key`,
+				`X-Content-IV`,
+			},
+			ExposedHeaders: []string{`Set-Cookie`, `set-cookie`, `cookie`},
+			AllowCredentials: true,
+		})
+	
+		fasthttp.ListenAndServe(`:8000`, c.Handler(initRouter()))
+	} else {	
+		fasthttp.ListenAndServe(`:8000`, initRouter())
+	}
 }
 func	bridgeInsecureMicroservice(serverName string, clientMS string) (*grpc.ClientConn) {
 	logs.Warning("Using insecure connection")
@@ -55,8 +85,6 @@ func	bridgeInsecureMicroservice(serverName string, clientMS string) (*grpc.Clien
 
 	if (clientMS == `members`) {
 		clients.members = members.NewMembersServiceClient(conn)
-	} else if (clientMS == `keys`) {
-		clients.keys = keys.NewKeysServiceClient(conn)
 	} else if (clientMS == `pictures`) {
 		clients.pictures = pictures.NewPicturesServiceClient(conn)
 		clients.albums = pictures.NewAlbumsServiceClient(conn)
@@ -105,8 +133,6 @@ func	bridgeMicroservice(serverName string, clientMS string) (*grpc.ClientConn){
 
 	if (clientMS == `members`) {
 		clients.members = members.NewMembersServiceClient(conn)
-	} else if (clientMS == `keys`) {
-		clients.keys = keys.NewKeysServiceClient(conn)
 	} else if (clientMS == `pictures`) {
 		clients.pictures = pictures.NewPicturesServiceClient(conn)
 		clients.albums = pictures.NewAlbumsServiceClient(conn)

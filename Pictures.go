@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 14 February 2020 - 01:02:13
+** @Last modified time:		Friday 21 February 2020 - 17:27:52
 *******************************************************************************/
 
 package			main
@@ -13,7 +13,8 @@ package			main
 import			"io"
 import			"context"
 import			"strconv"
-import			"net/url"
+import			"io/ioutil"
+// import			"net/url"
 import			"github.com/microgolang/logs"
 import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
@@ -50,20 +51,7 @@ func	streamWebsocketMessage(contentUUID string, step int8, picture *pictures.Lis
 **	DownloadPicture
 **	Router proxy function to download an image.
 ******************************************************************************/
-func	uploadPictureGRPC(memberID string, file []byte, contentUUID, contentName, contentType, albumID, lastModified string) error {
-	/**************************************************************************
-	**	0. Init the data to send to the Pictures microservice
-	**************************************************************************/
-	req := &pictures.UploadPictureRequest{
-		MemberID: memberID,
-		AlbumID: albumID,
-		Content: &pictures.UploadPictureRequest_Content{
-			Name: contentName,
-			Type: contentType,
-			OriginalTime: lastModified,
-		},
-	}
-
+func	uploadPictureGRPC(req *pictures.UploadPictureRequest, file []byte, contentUUID string) error {
 	/**************************************************************************
 	**	1. Open the stream to send Req & the file, cut in chunk
 	**************************************************************************/
@@ -110,30 +98,25 @@ func	uploadPictureGRPC(memberID string, file []byte, contentUUID, contentName, c
 	}
 }
 func	uploadPicture(ctx *fasthttp.RequestCtx) {
-	contentType := string(ctx.Request.Header.Peek(`X-Content-Type`))
-	contentNameEncoded := string(ctx.Request.Header.Peek(`X-Content-Name`))
-	contentChunkIDStr := string(ctx.Request.Header.Peek(`X-Chunk-ID`))
-	contentPartsStr := string(ctx.Request.Header.Peek(`X-Content-Parts`))
-	contentUUID := string(ctx.Request.Header.Peek(`X-Content-UUID`))
-	contentAlbumID := string(ctx.Request.Header.Peek(`X-Content-AlbumID`))
-	contentLastModified := string(ctx.Request.Header.Peek(`X-Content-Last-Modified`))
+	contentChunkIDStr := string(ctx.FormValue(`fileChunkID`))
+	contentPartsStr := string(ctx.FormValue(`fileParts`))
+	contentUUID := string(ctx.FormValue(`fileUUID`))
 
 	contentChunkID, _ := strconv.Atoi(contentChunkIDStr)
 	contentParts, _ := strconv.Atoi(contentPartsStr)
 	
-	contentName, err := url.QueryUnescape(contentNameEncoded)
-	if err != nil {
-		contentName = ``
-	}
+	file, _ := ctx.FormFile(`file`)
+	fileContent, _ := file.Open()
+	byteContainer, _ := ioutil.ReadAll(fileContent)
 
 	if block, ok := rm.loadContent(contentUUID); ok {
 		currentBlock := block
-		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], ctx.Request.Body()...)
+		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], byteContainer...)
 		rm.setContent(contentUUID, currentBlock)
 	} else {
 		block = make([]([]byte), contentParts + 1)
 		currentBlock := block
-		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], ctx.Request.Body()...)
+		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], byteContainer...)
 		rm.setContent(contentUUID, currentBlock)
 	}
 
@@ -144,7 +127,7 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 		rm.initLen(contentUUID)
 		rm.incLen(contentUUID)
 	}
-	
+
 
 	if len, ok := rm.loadLen(contentUUID); ok {
 		if (len >= uint(contentParts)) {
@@ -153,7 +136,28 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 	
 				streamWebsocketMessage(contentUUID, 2, nil, true)
 
-				uploadPictureGRPC(ctx.UserValue(`memberID`).(string), blob, contentUUID, contentName, contentType, contentAlbumID, contentLastModified)
+				fileWidthStr := string(ctx.FormValue(`fileWidth`))
+				fileWidth, _ := strconv.Atoi(fileWidthStr)
+				fileHeightStr := string(ctx.FormValue(`fileHeight`))
+				fileHeight, _ := strconv.Atoi(fileHeightStr)
+			
+				req := &pictures.UploadPictureRequest{
+					MemberID: ctx.UserValue(`memberID`).(string),
+					AlbumID: string(ctx.FormValue(`fileAlbumID`)),
+					Content: &pictures.UploadPictureRequest_Content{
+						Name: string(ctx.FormValue(`fileName`)),
+						Type: string(ctx.FormValue(`fileType`)),
+						OriginalTime: string(ctx.FormValue(`fileLastModified`)),
+						Width: int32(fileWidth), 
+						Height: int32(fileHeight), 
+					},
+					Crypto: &pictures.PictureCrypto{
+						Key: string(ctx.FormValue(`encryptionKey`)),
+						IV: string(ctx.FormValue(`encryptionIV`)),
+					},
+				}
+
+				uploadPictureGRPC(req, blob, contentUUID)
 
 				if wsConn, _, ok := rm.loadWs(contentUUID); ok {
 					wsConn.Close()
@@ -216,7 +220,6 @@ func	downloadPictureGRPC(pictureID, pictureSize, hashKey string) (*pictures.Down
 	req := &pictures.DownloadPictureRequest{
 		PictureID: pictureID,
 		PictureSize: pictureSize,
-		HashKey: hashKey,
 	}
 
 	/**************************************************************************
@@ -251,6 +254,9 @@ func	downloadPictureGRPC(pictureID, pictureSize, hashKey string) (*pictures.Down
 			logs.Error("receive error : ", err)
 			continue
 		}
+		resp.Crypto = receiver.GetCrypto()
+		resp.Crypto.Key = receiver.GetCrypto().GetKey()
+		resp.Crypto.IV = receiver.GetCrypto().GetIV()
 		resp.ContentType = receiver.GetContentType()
 		resp.Chunk = append(resp.GetChunk(), receiver.GetChunk()...)
 	}
@@ -261,7 +267,7 @@ func	downloadPicture(ctx *fasthttp.RequestCtx) {
 	pictureSize := ctx.UserValue("pictureSize").(string)
 
 	response, err := downloadPictureGRPC(pictureID, pictureSize, string(hashKey))
-	resolvePicture(ctx, response.GetChunk(), response.GetContentType(), err)
+	resolvePicture(ctx, response, err)
 }
 
 /******************************************************************************

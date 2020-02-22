@@ -5,17 +5,18 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 14 February 2020 - 19:24:14
+** @Last modified time:		Friday 21 February 2020 - 17:47:40
 *******************************************************************************/
 
 package			main
 
-import			_ "os"
 import			"github.com/microgolang/logs"
 import			"github.com/valyala/fasthttp"
 import			"github.com/buaazp/fasthttprouter"
 import			"github.com/fasthttp/websocket"
+import			"github.com/panghostlin/SDK/Pictures"
 import			"encoding/json"
+// import			"bytes"
 
 var fastupgrader = websocket.FastHTTPUpgrader{
 	ReadBufferSize:  1024,
@@ -24,6 +25,7 @@ var fastupgrader = websocket.FastHTTPUpgrader{
 		return true
 	},
 }
+
 
 func	resolve(ctx *fasthttp.RequestCtx, data interface{}, err error) {
 	if (err != nil) {
@@ -36,15 +38,32 @@ func	resolve(ctx *fasthttp.RequestCtx, data interface{}, err error) {
 	ctx.Response.SetStatusCode(200)
 	json.NewEncoder(ctx).Encode(data)
 }
-func	resolvePicture(ctx *fasthttp.RequestCtx, data []byte, contentType string, err error) {
+func	resolvePicture(ctx *fasthttp.RequestCtx, resp *pictures.DownloadPictureResponse, err error) {
 	if (err != nil) {
 		ctx.Response.SetStatusCode(404)
 		ctx.Write([]byte{})
 		return
 	}
-	ctx.Response.Header.SetContentType(contentType)
+	// ctx.Response.Header.SetContentType(`application/octet-stream`)
+	// ctx.Response.SetStatusCode(200)
+	type	sRet struct {
+		Picture		[]byte
+		Key			string
+		IV			string
+	}
+
+	// response.GetChunk(), response.GetContentType()
+	toRet := &sRet{
+		Picture: resp.GetChunk(),
+		Key: resp.GetCrypto().GetKey(),
+		IV: resp.GetCrypto().GetIV(),
+	}
+	// ctx.Write(reqBodyBytes.Bytes())
+
+
+	ctx.Response.Header.SetContentType(`application/json`)
 	ctx.Response.SetStatusCode(200)
-	ctx.Write(data)
+	json.NewEncoder(ctx).Encode(toRet)
 }
 
 func	withAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
@@ -58,7 +77,7 @@ func	withAuth(h fasthttp.RequestHandler) fasthttp.RequestHandler {
 		}
 
 		isSuccess, memberID := checkMemberCookie(ctx, string(accessToken))
-		if (!isSuccess) {
+		if (!isSuccess && false) {
 			ctx.Error(fasthttp.StatusMessage(fasthttp.StatusUnauthorized), fasthttp.StatusUnauthorized)
 			return
 		}
@@ -75,7 +94,6 @@ func	initRouter() func(*fasthttp.RequestCtx) {
 	router.POST("/newMember/", createNewMember)
 	router.POST("/loginMember/", loginMember)
 	router.POST("/checkMember/", withAuth(checkMember))
-	router.POST("/getMember/", withAuth(getMember))
 
 	router.POST("/uploadPicture/", withAuth(uploadPicture))
 	router.GET("/ws/uploadPicture/", wsUploadPicture)

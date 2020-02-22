@@ -5,11 +5,12 @@
 ** @Filename:				Cookies.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 14 February 2020 - 18:54:49
+** @Last modified time:		Friday 21 February 2020 - 13:08:07
 *******************************************************************************/
 
 package			main
 
+import			"os"
 import			"time"
 import			"context"
 import			"github.com/valyala/fasthttp"
@@ -17,15 +18,18 @@ import			"github.com/microgolang/logs"
 import			"github.com/panghostlin/SDK/Members"
 
 const	REFRESH_TOKEN_EXPIRATION_DURATION = (24 * time.Hour) * 31
-
 func	setCookie(ctx *fasthttp.RequestCtx, key, value string) {
 	cookie := &fasthttp.Cookie{}
 	cookie.SetKey(key)
 	cookie.SetValue(value)
 	cookie.SetPath(`/`)
 	cookie.SetHTTPOnly(true)
-	cookie.SetDomain(`majorcalamity.com`)
-	cookie.SetSecure(true)
+	if (os.Getenv("IS_LOCAL") == `true`) {
+		cookie.SetDomain(`localhost`)
+	} else {
+		cookie.SetDomain(os.Getenv("DOMAIN"))
+		cookie.SetSecure(true)
+	}
 	// cookie.SetSameSite(fasthttp.CookieSameSiteNoneMode)
 	// cookie.SetExpire(time.Unix(memberCookie.Expiration, 0))
 	cookie.SetExpire(time.Now().Add(REFRESH_TOKEN_EXPIRATION_DURATION))

@@ -5,7 +5,7 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 14 February 2020 - 18:18:23
+** @Last modified time:		Friday 21 February 2020 - 17:45:44
 *******************************************************************************/
 
 package			main
@@ -16,20 +16,31 @@ import			"github.com/microgolang/logs"
 import			"github.com/valyala/fasthttp"
 import			"github.com/panghostlin/SDK/Members"
 
-func	setCookieAndResolve(ctx *fasthttp.RequestCtx, cookie, hashKey string, err error) {
+type	sKeys struct {
+	PrivateKey	string
+	PublicKey	string
+	PrivateIV	string
+	PrivateSalt	string
+}
+
+func	setCookieAndResolve(ctx *fasthttp.RequestCtx, accessToken, publicKey, privateKey, privateIV, privateSalt string, err error) {
 	if (err != nil) {
 		ctx.Response.SetStatusCode(500)
 		json.NewEncoder(ctx).Encode(false)
 		return
 	}
+	keys := &sKeys{
+		PrivateKey: privateKey,
+		PublicKey: publicKey,
+		PrivateIV: privateIV,
+		PrivateSalt: privateSalt,
+	}
 
-	setCookie(ctx, `accessToken`, cookie)
-	setCookie(ctx, `hashKey`, hashKey)
+	setCookie(ctx, `accessToken`, accessToken)
 	ctx.Response.Header.SetContentType(`application/json`)
 	ctx.Response.SetStatusCode(200)
-	json.NewEncoder(ctx).Encode(true)
+	json.NewEncoder(ctx).Encode(keys)
 }
-
 /******************************************************************************
 **	Router proxy function to create a member.
 **	Call the Members Microservice to create a new member.
@@ -41,9 +52,9 @@ func	createNewMember(ctx *fasthttp.RequestCtx) {
 	result, err := clients.members.CreateMember(context.Background(), req)
 	if (err != nil) {
 		logs.Error(`LoginMember : fail to login member`, err)
-		setCookieAndResolve(ctx, ``, ``, err)
+		setCookieAndResolve(ctx, ``, ``, ``, ``, ``, err)
 	} else {
-		setCookieAndResolve(ctx, result.GetAccessToken().Value, result.GetHashKey(), err)
+		setCookieAndResolve(ctx, result.GetAccessToken().Value, result.GetKeys().GetPublicKey(), result.GetKeys().GetPrivateKey(), result.GetKeys().GetPrivateIV(), result.GetKeys().GetPrivateSalt(), nil)
 	}
 
 }
@@ -57,27 +68,14 @@ func	loginMember(ctx *fasthttp.RequestCtx) {
 	json.Unmarshal(ctx.PostBody(), &req)
 
 	result, err := clients.members.LoginMember(context.Background(), req)
+
 	if (err != nil) {
 		logs.Error(`LoginMember : fail to login member`, err)
-		setCookieAndResolve(ctx, ``, ``, err)
+		setCookieAndResolve(ctx, ``, ``, ``, ``, ``, err)
 	} else {
-		setCookieAndResolve(ctx, result.GetAccessToken().Value, result.GetHashKey(), err)
+		setCookieAndResolve(ctx, result.GetAccessToken().Value, result.GetKeys().GetPublicKey(), result.GetKeys().GetPrivateKey(), result.GetKeys().GetPrivateIV(), result.GetKeys().GetPrivateSalt(), nil)
 	}
 }
-
-/******************************************************************************
-**	Router proxy function to login a member.
-**	Call the Members Microservice to login an existing member.
-******************************************************************************/
-func	getMember(ctx *fasthttp.RequestCtx) {
-	req := &members.GetMemberRequest{}
-	req.MemberID = ctx.UserValue(`memberID`).(string)
-	req.HashKey = string(ctx.UserValue(`hashKey`).([]byte))
-
-	result, err := clients.members.GetMember(context.Background(), req)
-	resolve(ctx, result.GetMember(), err)
-}
-
 
 /******************************************************************************
 **	CheckMember
