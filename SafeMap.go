@@ -5,7 +5,7 @@
 ** @Filename:				SafeMap.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 19:52:48
+** @Last modified time:		Friday 28 February 2020 - 13:08:51
 *******************************************************************************/
 
 package			main
@@ -15,6 +15,7 @@ import			"github.com/fasthttp/websocket"
 
 type regularIntMap struct {
 	sync.RWMutex
+	refOpen		map[string](bool)
 	internal	map[string][]([]byte)
 	len			map[string](uint)
 	wsConn		map[string](*websocket.Conn)
@@ -23,6 +24,7 @@ type regularIntMap struct {
 
 func newRegularIntMap() *regularIntMap {
 	return &regularIntMap{
+		refOpen: make(map[string](bool)),
 		internal: make(map[string][]([]byte)),
 		len: make(map[string](uint)),
 		wsConn: make(map[string](*websocket.Conn)),
@@ -30,6 +32,12 @@ func newRegularIntMap() *regularIntMap {
 	}
 }
 
+func (rm *regularIntMap) loadRefOpen(key string) (value bool, ok bool) {
+	rm.RLock()
+	result, ok := rm.refOpen[key]
+	rm.RUnlock()
+	return result, ok
+}
 func (rm *regularIntMap) loadContent(key string) (value []([]byte), ok bool) {
 	rm.RLock()
 	result, ok := rm.internal[key]
@@ -64,6 +72,11 @@ func (rm *regularIntMap) initWs(key string, value *websocket.Conn) {
 }
 
 
+func (rm *regularIntMap) setRefOpen(key string, status bool) {
+	rm.Lock()
+	rm.refOpen[key] = status
+	rm.Unlock()
+}
 func (rm *regularIntMap) setContent(key string, value []([]byte)) {
 	rm.Lock()
 	rm.internal[key] = value
@@ -85,6 +98,7 @@ func (rm *regularIntMap) delete(key string) {
 	rm.Lock()
 	delete(rm.internal, key)
 	delete(rm.len, key)
+	delete(rm.refOpen, key)
 	rm.wsConnOpen[key] = false
 	rm.Unlock()
 }

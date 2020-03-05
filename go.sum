@@ -68,6 +68,16 @@ github.com/panghostlin/SDK v0.0.0-20200221164237-74c4dacb514d h1:GwfHn+47jalWT6a
 github.com/panghostlin/SDK v0.0.0-20200221164237-74c4dacb514d/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
 github.com/panghostlin/SDK v0.0.0-20200222103416-6812fcf53f33 h1:j4deYWR2ov+03gUMWt4nkAoaAEPgC0f9Zk5j5206yXU=
 github.com/panghostlin/SDK v0.0.0-20200222103416-6812fcf53f33/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
+github.com/panghostlin/SDK v0.0.0-20200228090135-7e47b391dded h1:54mCy2htM1gPotWDcEEkpecQTJibcSBqgOzLWJWTPJk=
+github.com/panghostlin/SDK v0.0.0-20200228090135-7e47b391dded/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
+github.com/panghostlin/SDK v0.0.0-20200228093308-46ea089aa8e6 h1:Efq9u5D9AOtvQP9YahBK5YgM3/upxHbqNzEUmtGOIZc=
+github.com/panghostlin/SDK v0.0.0-20200228093308-46ea089aa8e6/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
+github.com/panghostlin/SDK v0.0.0-20200228093941-28c3df5e0733 h1:JExmPsbQcxcwm2Q/x5W4MuYh6S1ZaTdGaSz0iVTLsSA=
+github.com/panghostlin/SDK v0.0.0-20200228093941-28c3df5e0733/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
+github.com/panghostlin/SDK v0.0.0-20200228095148-fc1622df4394 h1:DPxRhzvXtkqhLltbF057SnJ6htKAJrmaNRKQqMN0EOE=
+github.com/panghostlin/SDK v0.0.0-20200228095148-fc1622df4394/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
+github.com/panghostlin/SDK v0.0.0-20200304175451-f4fb5573fa9d h1:4/SVvmP8OdeCP8VUY6n6diLQSSCcFh2LuWimp/NHKuc=
+github.com/panghostlin/SDK v0.0.0-20200304175451-f4fb5573fa9d/go.mod h1:QYErUWsn8/b+2xMsn2FOSXk4ZyomLYH8ytwSsmKMGa0=
 github.com/panghostlin/websocket v1.4.2-0.20200213120905-854588738d5f h1:0DRjJGofZzAZUECyCS5CDjgcUEfhWL5Vpfzj75IFddc=
 github.com/panghostlin/websocket v1.4.2-0.20200213120905-854588738d5f/go.mod h1:xDJlgVwe2R8+5PXLNM+FdxTvbZgdOkgD1QbxFqBg1GE=
 github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4/go.mod h1:xMI15A0UPsDsEKsMN9yxemIoYk6Tm2C1GtYGdfGttqA=

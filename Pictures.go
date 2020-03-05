@@ -5,16 +5,16 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 21 February 2020 - 17:27:52
+** @Last modified time:		Wednesday 04 March 2020 - 18:53:30
 *******************************************************************************/
 
 package			main
 
 import			"io"
+import			"sync"
 import			"context"
 import			"strconv"
 import			"io/ioutil"
-// import			"net/url"
 import			"github.com/microgolang/logs"
 import			"github.com/panghostlin/SDK/Pictures"
 import			"github.com/valyala/fasthttp"
@@ -22,6 +22,13 @@ import			"github.com/fasthttp/websocket"
 import			"encoding/json"
 import			"bytes"
 
+/******************************************************************************
+**	wsResponse
+**	Websocket to stream the picture status to the client.
+**	- step: 1 => default
+**	- step: 2 => sending image to the picture MS
+**	- step: 3 => done saving the image
+******************************************************************************/
 type	wsResponse struct {
 	UUID		string
 	Step		int8
@@ -29,11 +36,16 @@ type	wsResponse struct {
 	IsSuccess	bool
 }
 
-func	streamWebsocketMessage(contentUUID string, step int8, picture *pictures.ListPictures_Content, isSuccess bool) {
-	if wsConn, _, ok := rm.loadWs(contentUUID); ok {
+var		streamWebsockerMutex = sync.Mutex{}
+func	streamWebsocketMessage(UUIDWithSize string, step int8, picture *pictures.ListPictures_Content, isSuccess bool) {
+	if wsConn, _, ok := rm.loadWs(UUIDWithSize); ok {
+
+		streamWebsockerMutex.Lock()
+		defer streamWebsockerMutex.Unlock()
+		
 		response := &wsResponse{}
 		response.Step = step
-		response.UUID = contentUUID
+		response.UUID = UUIDWithSize
 		response.Picture = picture
 		response.IsSuccess = isSuccess
 
@@ -51,7 +63,12 @@ func	streamWebsocketMessage(contentUUID string, step int8, picture *pictures.Lis
 **	DownloadPicture
 **	Router proxy function to download an image.
 ******************************************************************************/
-func	uploadPictureGRPC(req *pictures.UploadPictureRequest, file []byte, contentUUID string) error {
+func	uploadPictureGRPC(req *pictures.UploadPictureRequest, file []byte, contentUUID, isLast string) error {
+	step := int8(3)
+	if (isLast == `true`) {
+		step = int8(4)
+	}
+
 	/**************************************************************************
 	**	1. Open the stream to send Req & the file, cut in chunk
 	**************************************************************************/
@@ -81,60 +98,91 @@ func	uploadPictureGRPC(req *pictures.UploadPictureRequest, file []byte, contentU
 	**************************************************************************/
 	stream.CloseSend()
 
+	/**************************************************************************
+	**	We are creating a first ref in the mapping, with the default UUID, in
+	**	order to know the UUID upload status for the entire batch
+	**************************************************************************/
 	for {
 		recv, err := stream.Recv()
 		if (err == io.EOF) {
-			return nil
+			break
 		} else if (err != nil) {
-			streamWebsocketMessage(contentUUID, int8(4), nil, false)
-			return err
+			streamWebsocketMessage(contentUUID, step, nil, false)
+			break
 		}
 
 		if (recv.GetPicture() != nil) {
-			streamWebsocketMessage(contentUUID, int8(recv.GetStep()), recv.GetPicture(), recv.GetSuccess())
-			return nil
+			streamWebsocketMessage(contentUUID, step, recv.GetPicture(), recv.GetSuccess())
+			break
+		} else {
+			streamWebsocketMessage(contentUUID, step, recv.GetPicture(), recv.GetSuccess())
 		}
-		streamWebsocketMessage(contentUUID, int8(recv.GetStep()), recv.GetPicture(), recv.GetSuccess())
 	}
+	if (step == 4) {
+		if _, ok := rm.loadContent(contentUUID); !ok {
+			rm.delete(contentUUID)
+		}
+	}
+	return err
 }
-func	uploadPicture(ctx *fasthttp.RequestCtx) {
-	contentChunkIDStr := string(ctx.FormValue(`fileChunkID`))
-	contentPartsStr := string(ctx.FormValue(`fileParts`))
-	contentUUID := string(ctx.FormValue(`fileUUID`))
 
-	contentChunkID, _ := strconv.Atoi(contentChunkIDStr)
-	contentParts, _ := strconv.Atoi(contentPartsStr)
-	
+func	uploadPicture(ctx *fasthttp.RequestCtx) {
+	/**************************************************************************
+	**	Getting all the data from the client request (the file and the helpers)
+	**************************************************************************/
+	isLast := string(ctx.FormValue(`isLast`))
+	contentUUID := string(ctx.FormValue(`fileUUID`))
+	contentSizeType := string(ctx.FormValue(`fileSizeType`))
+	contentChunkID, _ := strconv.Atoi(string(ctx.FormValue(`fileChunkID`)))
+	contentParts, _ := strconv.Atoi(string(ctx.FormValue(`fileParts`)))
 	file, _ := ctx.FormFile(`file`)
 	fileContent, _ := file.Open()
 	byteContainer, _ := ioutil.ReadAll(fileContent)
 
-	if block, ok := rm.loadContent(contentUUID); ok {
+	/**************************************************************************
+	**	We are creating this all upload reference, wich tell us if the UUID has
+	**	been open, not the particular UUID_SIZE
+	**************************************************************************/
+	if _, ok := rm.loadRefOpen(contentUUID); !ok {
+		streamWebsocketMessage(contentUUID, 2, nil, true)
+		rm.setRefOpen(contentUUID, true)
+	}
+
+	/**************************************************************************
+	**	We are creating a second ref in the mapping, for this specific image
+	**	upload by contactaining the UUID with the contentSizeType.
+	**	This will allow us to work with the upload status of this, and only
+	**	this uploaded size.
+	**************************************************************************/
+	UUIDWithSize := contentUUID + `_` + contentSizeType
+	if block, ok := rm.loadContent(UUIDWithSize); ok {
 		currentBlock := block
 		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], byteContainer...)
-		rm.setContent(contentUUID, currentBlock)
+		rm.setContent(UUIDWithSize, currentBlock)
 	} else {
 		block = make([]([]byte), contentParts + 1)
 		currentBlock := block
 		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], byteContainer...)
-		rm.setContent(contentUUID, currentBlock)
+		rm.setContent(UUIDWithSize, currentBlock)
 	}
 
-	
-	if _, ok := rm.loadLen(contentUUID); ok {
-		rm.incLen(contentUUID)
+	/**************************************************************************
+	**	We are getting the current number of batch we got from the client.
+	**	When this len === the content part, we got all the data to continue.
+	**************************************************************************/
+	if _, ok := rm.loadLen(UUIDWithSize); ok {
+		rm.incLen(UUIDWithSize)
 	} else {
-		rm.initLen(contentUUID)
-		rm.incLen(contentUUID)
+		rm.initLen(UUIDWithSize)
+		rm.incLen(UUIDWithSize)
 	}
 
 
-	if len, ok := rm.loadLen(contentUUID); ok {
+	if len, ok := rm.loadLen(UUIDWithSize); ok {
 		if (len >= uint(contentParts)) {
-			if blobArr, ok := rm.loadContent(contentUUID); ok {
+			if blobArr, ok := rm.loadContent(UUIDWithSize); ok {
 				blob := bytes.Join(blobArr, nil)
 	
-				streamWebsocketMessage(contentUUID, 2, nil, true)
 
 				fileWidthStr := string(ctx.FormValue(`fileWidth`))
 				fileWidth, _ := strconv.Atoi(fileWidthStr)
@@ -147,9 +195,11 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 					Content: &pictures.UploadPictureRequest_Content{
 						Name: string(ctx.FormValue(`fileName`)),
 						Type: string(ctx.FormValue(`fileType`)),
+						SizeType: contentSizeType,
 						OriginalTime: string(ctx.FormValue(`fileLastModified`)),
 						Width: int32(fileWidth), 
-						Height: int32(fileHeight), 
+						Height: int32(fileHeight),
+						GroupID: contentUUID,
 					},
 					Crypto: &pictures.PictureCrypto{
 						Key: string(ctx.FormValue(`encryptionKey`)),
@@ -157,17 +207,17 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 					},
 				}
 
-				uploadPictureGRPC(req, blob, contentUUID)
+				uploadPictureGRPC(req, blob, contentUUID, isLast)
 
-				if wsConn, _, ok := rm.loadWs(contentUUID); ok {
+				if wsConn, _, ok := rm.loadWs(UUIDWithSize); ok {
 					wsConn.Close()
-					rm.delete(contentUUID)
+					rm.delete(UUIDWithSize)
 				}
-
 			}
 		}
 	}
 }
+
 
 /******************************************************************************
 **	wsUploadPicture
