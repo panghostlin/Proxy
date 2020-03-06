@@ -15,7 +15,7 @@ require (
 	github.com/lab259/cors v0.2.0
 	github.com/mattn/go-isatty v0.0.12 // indirect
 	github.com/microgolang/logs v0.0.0-20191128163715-df5826543c89
-	github.com/panghostlin/SDK v0.0.0-20200304175451-f4fb5573fa9d
+	github.com/panghostlin/SDK v0.0.0-20200306110020-e769abdae1b7
 	github.com/valyala/fasthttp v1.9.0
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
 	golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c // indirect

@@ -5,7 +5,7 @@
 ** @Filename:				Albums.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 13 February 2020 - 18:57:51
+** @Last modified time:		Friday 06 March 2020 - 11:59:41
 *******************************************************************************/
 
 package			main
@@ -29,9 +29,7 @@ func	createAlbumGRPC(memberID string, req *pictures.CreateAlbumRequest) (*pictur
 		&pictures.CreateAlbumRequest{
 			Name: req.GetName(),
 			MemberID: memberID,
-			CoverPicture0ID: req.GetCoverPicture0ID(),
-			CoverPicture1ID: req.GetCoverPicture1ID(),
-			CoverPicture2ID: req.GetCoverPicture2ID(),
+			CoverPicture: req.GetCoverPicture(),
 			Pictures: req.GetPictures(),
 		},
 	)
