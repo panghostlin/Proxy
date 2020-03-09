@@ -5,7 +5,7 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 21 February 2020 - 17:47:40
+** @Last modified time:		Monday 09 March 2020 - 11:02:37
 *******************************************************************************/
 
 package			main
@@ -94,6 +94,7 @@ func	initRouter() func(*fasthttp.RequestCtx) {
 	router.POST("/newMember/", createNewMember)
 	router.POST("/loginMember/", loginMember)
 	router.POST("/checkMember/", withAuth(checkMember))
+	router.POST("/getMember/", withAuth(getMember))
 
 	router.POST("/uploadPicture/", withAuth(uploadPicture))
 	router.GET("/ws/uploadPicture/", wsUploadPicture)

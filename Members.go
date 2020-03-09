@@ -5,7 +5,7 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Saturday 22 February 2020 - 18:46:13
+** @Last modified time:		Monday 09 March 2020 - 11:09:34
 *******************************************************************************/
 
 package			main
@@ -84,4 +84,16 @@ func	loginMember(ctx *fasthttp.RequestCtx) {
 func	checkMember(ctx *fasthttp.RequestCtx) {
 	ctx.Response.SetStatusCode(200)
 	json.NewEncoder(ctx).Encode(true)
+}
+
+/******************************************************************************
+**	getMember
+**	Router proxy function to retreive informations about the member
+******************************************************************************/
+func	getMember(ctx *fasthttp.RequestCtx) {
+	memberID := ctx.UserValue("memberID").(string)
+	req := &members.GetMemberRequest{MemberID: memberID}
+
+	result, err := clients.members.GetMember(context.Background(), req)
+	resolve(ctx, result, err)
 }
