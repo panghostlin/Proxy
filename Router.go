@@ -5,7 +5,7 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Monday 09 March 2020 - 11:02:37
+** @Last modified time:		Thursday 12 March 2020 - 20:07:31
 *******************************************************************************/
 
 package			main
@@ -104,6 +104,7 @@ func	initRouter() func(*fasthttp.RequestCtx) {
 	router.POST("/pictures/getby/member/", withAuth(listPicturesByMember))
 	router.POST("/pictures/getby/album/", withAuth(listPicturesByAlbum))
 	router.POST("/pictures/set/album/", withAuth(setPicturesAlbum))
+	router.POST("/pictures/set/date/", withAuth(setPicturesDate))
 
 	router.POST("/albums/create/", withAuth(createAlbum))
 	router.POST("/albums/list/", withAuth(listAlbums))

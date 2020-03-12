@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Wednesday 04 March 2020 - 18:53:30
+** @Last modified time:		Thursday 12 March 2020 - 22:07:27
 *******************************************************************************/
 
 package			main
@@ -429,5 +429,40 @@ func	setPicturesAlbum(ctx *fasthttp.RequestCtx) {
 
 	memberID := ctx.UserValue("memberID").(string)
 	isSuccess, err := setPictureAlbumGRPC(memberID, request.AlbumID, request.GroupIDs)
+	resolve(ctx, isSuccess, err)
+}
+
+/******************************************************************************
+**	setPicturesDateGRPC
+******************************************************************************/
+func	setPicturesDateGRPC(memberID, newDate string, groupIDs []string) (bool, error) {
+	/**************************************************************************
+	**	0. Init the data to send to the Pictures microservice
+	**************************************************************************/
+	req := &pictures.SetPicturesDateRequest{
+		MemberID: memberID,
+		NewDate: newDate,
+		GroupIDs: groupIDs,
+	}
+	/**************************************************************************
+	**	1. Send the data to the microservice
+	**************************************************************************/
+	result, err := clients.pictures.SetPicturesDate(context.Background(), req)
+	if (err != nil) {
+		logs.Error(`Fail to communicate with microservice`, err)
+		return false, err
+	}
+	return result.GetSuccess(), nil
+}
+func	setPicturesDate(ctx *fasthttp.RequestCtx) {
+	type	Srequest struct {
+		NewDate string
+		GroupIDs []string
+	}
+	request := &Srequest{}
+	json.Unmarshal(ctx.PostBody(), &request)
+
+	memberID := ctx.UserValue("memberID").(string)
+	isSuccess, err := setPicturesDateGRPC(memberID, request.NewDate, request.GroupIDs)
 	resolve(ctx, isSuccess, err)
 }
