@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Wednesday 01 April 2020 - 12:04:34
+** @Last modified time:		Tuesday 14 April 2020 - 17:47:45
 *******************************************************************************/
 
 package			main
@@ -156,7 +156,6 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 	**************************************************************************/
 	UUIDWithSize := contentUUID + `_` + contentSizeType
 	if block, ok := rm.loadContent(UUIDWithSize); ok {
-		logs.Pretty(`HERE`)
 		currentBlock := block
 		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], byteContainer...)
 		rm.setContent(UUIDWithSize, currentBlock)
