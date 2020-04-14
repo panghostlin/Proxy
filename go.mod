@@ -8,7 +8,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fasthttp/websocket v1.4.2-0.20200211200836-5ac4ed426f98
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/gorilla/websocket v1.4.1
+	github.com/gorilla/websocket v1.4.2
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/klauspost/compress v1.10.1 // indirect
 	github.com/klauspost/cpuid v1.2.3 // indirect
