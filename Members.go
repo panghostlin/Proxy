@@ -5,7 +5,7 @@
 ** @Filename:				Members.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Monday 09 March 2020 - 11:09:34
+** @Last modified time:		Wednesday 01 April 2020 - 12:04:38
 *******************************************************************************/
 
 package			main
@@ -95,5 +95,5 @@ func	getMember(ctx *fasthttp.RequestCtx) {
 	req := &members.GetMemberRequest{MemberID: memberID}
 
 	result, err := clients.members.GetMember(context.Background(), req)
-	resolve(ctx, result, err)
+	resolve(ctx, result, err, 401)
 }

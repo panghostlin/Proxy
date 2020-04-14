@@ -5,7 +5,7 @@
 ** @Filename:				Pictures.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 12 March 2020 - 22:07:27
+** @Last modified time:		Wednesday 01 April 2020 - 12:04:34
 *******************************************************************************/
 
 package			main
@@ -143,7 +143,7 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 	**	We are creating this all upload reference, wich tell us if the UUID has
 	**	been open, not the particular UUID_SIZE
 	**************************************************************************/
-	if _, ok := rm.loadRefOpen(contentUUID); !ok {
+	if isOpen, ok := rm.loadRefOpen(contentUUID); !ok || isOpen == false {
 		streamWebsocketMessage(contentUUID, 2, nil, true)
 		rm.setRefOpen(contentUUID, true)
 	}
@@ -156,10 +156,12 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 	**************************************************************************/
 	UUIDWithSize := contentUUID + `_` + contentSizeType
 	if block, ok := rm.loadContent(UUIDWithSize); ok {
+		logs.Pretty(`HERE`)
 		currentBlock := block
 		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], byteContainer...)
 		rm.setContent(UUIDWithSize, currentBlock)
 	} else {
+		rm.setWsOpen(UUIDWithSize, true)
 		block = make([]([]byte), contentParts + 1)
 		currentBlock := block
 		currentBlock[contentChunkID] = append(currentBlock[contentChunkID], byteContainer...)
@@ -209,9 +211,13 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 
 				uploadPictureGRPC(req, blob, contentUUID, isLast)
 
-				if wsConn, _, ok := rm.loadWs(UUIDWithSize); ok {
-					wsConn.Close()
-					rm.delete(UUIDWithSize)
+				rm.delete(UUIDWithSize)
+
+				if (isLast == `true`) {
+					if wsConn, _, ok := rm.loadWs(contentUUID); ok {
+						wsConn.Close()
+						rm.delete(contentUUID)
+					}
 				}
 			}
 		}
@@ -230,10 +236,15 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 **	4 : The image is saved, sending it's ID to work with if on the client side
 ******************************************************************************/
 func	wsUploadPicture(ctx *fasthttp.RequestCtx) {
+	fileUUID := ctx.UserValue("fileUUID")
 	err := fastupgrader.Upgrade(ctx, func(conn *websocket.Conn) {
 		response := &wsResponse{}
 		response.Step = 1
-		response.UUID, _ = generateUUID(32)
+		if (fileUUID == nil) {
+			response.UUID, _ = generateUUID(32)
+		} else {
+			response.UUID = fileUUID.(string)
+		}
 		rm.initWs(response.UUID, conn)
 		rm.initLen(response.UUID)
 		err := conn.WriteJSON(response)
@@ -343,7 +354,7 @@ func	deletePictures(ctx *fasthttp.RequestCtx) {
 
 	memberID := ctx.UserValue("memberID").(string)
 	isSuccess, err := deletePicturesGRPC(memberID, request.PicturesID)
-	resolve(ctx, isSuccess, err)
+	resolve(ctx, isSuccess, err, 401)
 }
 
 
@@ -366,7 +377,7 @@ func	ListPicturesByMemberGRPC(memberID string) (*pictures.ListPicturesByMemberID
 func	listPicturesByMember(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 	data, err := ListPicturesByMemberGRPC(memberID)
-	resolve(ctx, data.GetPictures(), err)
+	resolve(ctx, data.GetPictures(), err, 401)
 }
 
 
@@ -396,7 +407,7 @@ func	listPicturesByAlbum(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 
 	data, err := listPicturesByAlbumGRPC(memberID, request.AlbumID)
-	resolve(ctx, data.GetPictures(), err)
+	resolve(ctx, data.GetPictures(), err, 401)
 }
 
 
@@ -429,7 +440,7 @@ func	setPicturesAlbum(ctx *fasthttp.RequestCtx) {
 
 	memberID := ctx.UserValue("memberID").(string)
 	isSuccess, err := setPictureAlbumGRPC(memberID, request.AlbumID, request.GroupIDs)
-	resolve(ctx, isSuccess, err)
+	resolve(ctx, isSuccess, err, 401)
 }
 
 /******************************************************************************
@@ -464,5 +475,5 @@ func	setPicturesDate(ctx *fasthttp.RequestCtx) {
 
 	memberID := ctx.UserValue("memberID").(string)
 	isSuccess, err := setPicturesDateGRPC(memberID, request.NewDate, request.GroupIDs)
-	resolve(ctx, isSuccess, err)
+	resolve(ctx, isSuccess, err, 401)
 }

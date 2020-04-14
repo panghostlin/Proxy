@@ -5,7 +5,7 @@
 ** @Filename:				SafeMap.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 28 February 2020 - 13:08:51
+** @Last modified time:		Thursday 26 March 2020 - 17:34:52
 *******************************************************************************/
 
 package			main
@@ -53,9 +53,9 @@ func (rm *regularIntMap) loadLen(key string) (value uint, ok bool) {
 func (rm *regularIntMap) loadWs(key string) (value *websocket.Conn, isOpen bool, ok bool) {
 	rm.RLock()
 	result, ok := rm.wsConn[key]
-	resultOpen, ok := rm.wsConnOpen[key]
+	resultOpen, ok2 := rm.wsConnOpen[key]
 	rm.RUnlock()
-	return result, resultOpen, ok
+	return result, resultOpen, ok && ok2
 }
 
 
@@ -85,6 +85,11 @@ func (rm *regularIntMap) setContent(key string, value []([]byte)) {
 func (rm *regularIntMap) setWs(key string, value *websocket.Conn) {
 	rm.Lock()
 	rm.wsConn[key] = value
+	rm.Unlock()
+}
+func (rm *regularIntMap) setWsOpen(key string, value bool) {
+	rm.Lock()
+	rm.wsConnOpen[key] = value
 	rm.Unlock()
 }
 func (rm *regularIntMap) incLen(key string) {

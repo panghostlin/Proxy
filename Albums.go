@@ -5,7 +5,7 @@
 ** @Filename:				Albums.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 06 March 2020 - 11:59:41
+** @Last modified time:		Wednesday 01 April 2020 - 12:06:16
 *******************************************************************************/
 
 package			main
@@ -46,7 +46,7 @@ func	createAlbum(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 
 	data, err := createAlbumGRPC(memberID, req)
-	resolve(ctx, data, err)
+	resolve(ctx, data, err, 401)
 }
 
 /******************************************************************************
@@ -67,7 +67,7 @@ func	listAlbums(ctx *fasthttp.RequestCtx) {
 	memberID := ctx.UserValue("memberID").(string)
 	data, err := listAlbumsGRPC(memberID)
 
-	resolve(ctx, data.GetAlbums(), err)
+	resolve(ctx, data.GetAlbums(), err, 401)
 }
 
 
@@ -88,7 +88,7 @@ func	setAlbumCover(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := setAlbumCoverGRPC(req)
-	resolve(ctx, data.GetAlbumID(), err)
+	resolve(ctx, data.GetAlbumID(), err, 401)
 }
 
 
@@ -109,7 +109,7 @@ func	setAlbumName(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := setAlbumNameGRPC(req)
-	resolve(ctx, data.GetAlbumID(), err)
+	resolve(ctx, data.GetAlbumID(), err, 401)
 }
 
 
@@ -130,7 +130,7 @@ func	deleteAlbum(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := deleteAlbumGRPC(req)
-	resolve(ctx, data.GetSuccess(), err)
+	resolve(ctx, data.GetSuccess(), err, 401)
 }
 
 
@@ -151,5 +151,5 @@ func	getAlbum(ctx *fasthttp.RequestCtx) {
 	req.MemberID = ctx.UserValue("memberID").(string)
 
 	data, err := getAlbumGRPC(req)
-	resolve(ctx, data.GetAlbum(), err)
+	resolve(ctx, data.GetAlbum(), err, 401)
 }

@@ -5,7 +5,7 @@
 ** @Filename:				Router.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Thursday 12 March 2020 - 20:07:31
+** @Last modified time:		Wednesday 01 April 2020 - 12:03:26
 *******************************************************************************/
 
 package			main
@@ -27,10 +27,14 @@ var fastupgrader = websocket.FastHTTPUpgrader{
 }
 
 
-func	resolve(ctx *fasthttp.RequestCtx, data interface{}, err error) {
+func	resolve(ctx *fasthttp.RequestCtx, data interface{}, err error, errCode ...int) {
 	if (err != nil) {
 		ctx.Response.Header.SetContentType(`application/json`)
-		ctx.Response.SetStatusCode(404)
+		if (len(errCode) == 0) {
+			ctx.Response.SetStatusCode(404)
+		} else {
+			ctx.Response.SetStatusCode(errCode[0])
+		}
 		json.NewEncoder(ctx).Encode(false)
 		return
 	}
@@ -40,7 +44,7 @@ func	resolve(ctx *fasthttp.RequestCtx, data interface{}, err error) {
 }
 func	resolvePicture(ctx *fasthttp.RequestCtx, resp *pictures.DownloadPictureResponse, err error) {
 	if (err != nil) {
-		ctx.Response.SetStatusCode(404)
+		ctx.Response.SetStatusCode(403)
 		ctx.Write([]byte{})
 		return
 	}
@@ -97,7 +101,9 @@ func	initRouter() func(*fasthttp.RequestCtx) {
 	router.POST("/getMember/", withAuth(getMember))
 
 	router.POST("/uploadPicture/", withAuth(uploadPicture))
+	router.GET("/ws/uploadPicture/:fileUUID", wsUploadPicture)
 	router.GET("/ws/uploadPicture/", wsUploadPicture)
+
 	router.GET("/downloadPicture/:pictureSize/:pictureID", withAuth(downloadPicture))
 	router.POST("/deletePictures/", withAuth(deletePictures))
 
