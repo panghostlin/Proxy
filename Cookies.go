@@ -5,7 +5,7 @@
 ** @Filename:				Cookies.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 21 February 2020 - 13:08:07
+** @Last modified time:		Tuesday 14 April 2020 - 19:16:10
 *******************************************************************************/
 
 package			main
@@ -24,7 +24,7 @@ func	setCookie(ctx *fasthttp.RequestCtx, key, value string) {
 	cookie.SetValue(value)
 	cookie.SetPath(`/`)
 	cookie.SetHTTPOnly(true)
-	if (os.Getenv("IS_LOCAL") == `true`) {
+	if (os.Getenv("IS_DEV") == `true`) {
 		cookie.SetDomain(`localhost`)
 	} else {
 		cookie.SetDomain(os.Getenv("DOMAIN"))

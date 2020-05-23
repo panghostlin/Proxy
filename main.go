@@ -5,7 +5,7 @@
 ** @Filename:				main.go
 **
 ** @Last modified by:		Tbouder
-** @Last modified time:		Friday 21 February 2020 - 17:46:42
+** @Last modified time:		Tuesday 14 April 2020 - 19:16:13
 *******************************************************************************/
 
 package			main
@@ -43,7 +43,7 @@ func fileExists(filename string) bool {
 func	serveProxy() {
 	logs.Success(`Listening on :8000`)
 
-	if (os.Getenv("IS_LOCAL") == `true`) {
+	if (os.Getenv("IS_DEV") == `true`) {
 		c := cors.New(cors.Options{
 			AllowOriginFunc: func(origin string) bool {
 				return true

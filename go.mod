@@ -3,23 +3,21 @@ module github.com/panghostlin/Proxy
 go 1.13
 
 require (
-	github.com/AdhityaRamadhanus/fasthttpcors v0.0.0-20170121111917-d4c07198763a
 	github.com/buaazp/fasthttprouter v0.1.1
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/fasthttp/websocket v1.4.2-0.20200211200836-5ac4ed426f98
+	github.com/fasthttp/websocket v1.4.2
 	github.com/fatih/color v1.9.0 // indirect
-	github.com/gorilla/websocket v1.4.2
-	github.com/julienschmidt/httprouter v1.3.0
-	github.com/klauspost/compress v1.10.1 // indirect
-	github.com/klauspost/cpuid v1.2.3 // indirect
+	github.com/golang/protobuf v1.4.2 // indirect
+	github.com/klauspost/compress v1.10.6 // indirect
 	github.com/lab259/cors v0.2.0
-	github.com/mattn/go-isatty v0.0.12 // indirect
+	github.com/mattn/go-colorable v0.1.6 // indirect
 	github.com/microgolang/logs v0.0.0-20191128163715-df5826543c89
-	github.com/panghostlin/SDK v0.0.0-20200312204850-36ed8efea66c
-	github.com/valyala/fasthttp v1.9.0
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2 // indirect
-	golang.org/x/sys v0.0.0-20200219091948-cb0a6d8edb6c // indirect
+	github.com/panghostlin/SDK v0.0.0-20200523112533-9df345c6903c
+	github.com/savsgio/gotils v0.0.0-20200413113635-8c468ce75cca // indirect
+	github.com/valyala/fasthttp v1.12.0
+	golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2 // indirect
+	golang.org/x/sys v0.0.0-20200519105757-fe76b779f299 // indirect
 	golang.org/x/text v0.3.2 // indirect
-	google.golang.org/genproto v0.0.0-20200218151345-dad8c97a84f5 // indirect
-	google.golang.org/grpc v1.28.1
+	google.golang.org/genproto v0.0.0-20200521103424-e9a78aa275b7 // indirect
+	google.golang.org/grpc v1.29.1
 )

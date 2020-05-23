@@ -54,6 +54,7 @@ func	resolvePicture(ctx *fasthttp.RequestCtx, resp *pictures.DownloadPictureResp
 		Picture		[]byte
 		Key			string
 		IV			string
+		Preview		string
 	}
 
 	// response.GetChunk(), response.GetContentType()
@@ -61,6 +62,7 @@ func	resolvePicture(ctx *fasthttp.RequestCtx, resp *pictures.DownloadPictureResp
 		Picture: resp.GetChunk(),
 		Key: resp.GetCrypto().GetKey(),
 		IV: resp.GetCrypto().GetIV(),
+		Preview: resp.GetPreview(), //`LEHV6nWB2yk8pyo0adR*.7kCMdnj`,
 	}
 	// ctx.Write(reqBodyBytes.Bytes())
 
@@ -104,6 +106,7 @@ func	initRouter() func(*fasthttp.RequestCtx) {
 	router.GET("/ws/uploadPicture/:fileUUID", wsUploadPicture)
 	router.GET("/ws/uploadPicture/", wsUploadPicture)
 
+	router.GET("/downloadPreview/:pictureID", withAuth(downloadPreview))
 	router.GET("/downloadPicture/:pictureSize/:pictureID", withAuth(downloadPicture))
 	router.POST("/deletePictures/", withAuth(deletePictures))
 

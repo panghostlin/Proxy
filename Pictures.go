@@ -135,6 +135,7 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 	contentSizeType := string(ctx.FormValue(`fileSizeType`))
 	contentChunkID, _ := strconv.Atoi(string(ctx.FormValue(`fileChunkID`)))
 	contentParts, _ := strconv.Atoi(string(ctx.FormValue(`fileParts`)))
+	preview := string(ctx.FormValue(`preview`))
 	file, _ := ctx.FormFile(`file`)
 	fileContent, _ := file.Open()
 	byteContainer, _ := ioutil.ReadAll(fileContent)
@@ -201,6 +202,7 @@ func	uploadPicture(ctx *fasthttp.RequestCtx) {
 						Width: int32(fileWidth), 
 						Height: int32(fileHeight),
 						GroupID: contentUUID,
+						Preview: preview,
 					},
 					Crypto: &pictures.PictureCrypto{
 						Key: string(ctx.FormValue(`encryptionKey`)),
@@ -318,6 +320,7 @@ func	downloadPictureGRPC(pictureID, pictureSize, hashKey string) (*pictures.Down
 		resp.Crypto.Key = receiver.GetCrypto().GetKey()
 		resp.Crypto.IV = receiver.GetCrypto().GetIV()
 		resp.ContentType = receiver.GetContentType()
+		resp.Preview = receiver.GetPreview()
 		resp.Chunk = append(resp.GetChunk(), receiver.GetChunk()...)
 	}
 }
@@ -329,6 +332,32 @@ func	downloadPicture(ctx *fasthttp.RequestCtx) {
 	response, err := downloadPictureGRPC(pictureID, pictureSize, string(hashKey))
 	resolvePicture(ctx, response, err)
 }
+
+/******************************************************************************
+**	downloadPreviewGRPC
+**	Call the Picture Microservice to download a preview.
+**
+**	downloadPreview
+**	Router proxy function to download a preview.
+******************************************************************************/
+func	downloadPreviewGRPC(pictureID, hashKey string) (*pictures.DownloadPreviewResponse, error) {
+	req := &pictures.DownloadPreviewRequest{PictureID: pictureID}
+
+	result, err := clients.pictures.DownloadPreview(context.Background(), req)
+	if (err != nil) {
+		logs.Error(`Fail to communicate with microservice`, err)
+		return nil, err
+	}
+	return result, nil
+}
+func	downloadPreview(ctx *fasthttp.RequestCtx) {
+	hashKey := ctx.UserValue("hashKey").([]byte)
+	pictureID := ctx.UserValue("pictureID").(string)
+
+	response, err := downloadPreviewGRPC(pictureID, string(hashKey))
+	resolve(ctx, response, err)
+}
+
 
 /******************************************************************************
 **	deletePicturesGRPC
