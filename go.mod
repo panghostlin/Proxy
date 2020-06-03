@@ -14,7 +14,7 @@ require (
 	github.com/microgolang/logs v0.0.0-20191128163715-df5826543c89
 	github.com/panghostlin/SDK v0.0.0-20200523112533-9df345c6903c
 	github.com/savsgio/gotils v0.0.0-20200413113635-8c468ce75cca // indirect
-	github.com/valyala/fasthttp v1.12.0
+	github.com/valyala/fasthttp v1.14.0
 	golang.org/x/net v0.0.0-20200520182314-0ba52f642ac2 // indirect
 	golang.org/x/sys v0.0.0-20200519105757-fe76b779f299 // indirect
 	golang.org/x/text v0.3.2 // indirect
